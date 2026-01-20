@@ -3,13 +3,7 @@ package chess;
 import java.util.Collection;
 import java.util.List;
 
-/**
- * Represents a single chess piece
- * <p>
- * Note: You can add to this class, but you may not alter
- * signature of the existing methods.
- */
-public class ChessPiece {
+public class PieceMovesCalculator {
     
     private final ChessGame.TeamColor pieceColor;
     private final PieceType type;
