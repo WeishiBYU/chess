@@ -45,6 +45,22 @@ public class ChessPiece {
         return type;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ChessPiece other)) {
+            return false;
+        }
+        return pieceColor == other.pieceColor && type == other.type;
+    }
+
+    @Override
+    public int hashCode() {
+        return java.util.Objects.hash(pieceColor, type);
+    }
+
     /**
      * Calculates all the positions a chess piece can move to
      * Does not take into account moves that are illegal due to leaving the king in
@@ -78,4 +94,5 @@ public class ChessPiece {
 
         return List.of();
     }
+
 }

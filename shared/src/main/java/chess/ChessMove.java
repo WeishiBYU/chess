@@ -44,6 +44,24 @@ public class ChessMove {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ChessMove other)) {
+            return false;
+        }
+        return java.util.Objects.equals(startPosition, other.startPosition)
+                && java.util.Objects.equals(endPosition, other.endPosition)
+                && promotionPiece == other.promotionPiece;
+    }
+
+    @Override
+    public int hashCode() {
+        return java.util.Objects.hash(startPosition, endPosition, promotionPiece);
+    }
+
+    @Override
     public String toString() {
         return String.format("%s,%s", startPosition, endPosition);
     }

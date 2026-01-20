@@ -61,5 +61,50 @@ class ChessMoveCalc {
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         return List.of();
         }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((piece == null) ? 0 : piece.hashCode());
+        result = prime * result + ((board == null) ? 0 : board.hashCode());
+        result = prime * result + ((moves == null) ? 0 : moves.hashCode());
+        result = prime * result + ((myPosition == null) ? 0 : myPosition.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ChessMoveCalc other = (ChessMoveCalc) obj;
+        if (piece == null) {
+            if (other.piece != null)
+                return false;
+        } else if (!piece.equals(other.piece))
+            return false;
+        if (board == null) {
+            if (other.board != null)
+                return false;
+        } else if (!board.equals(other.board))
+            return false;
+        if (moves == null) {
+            if (other.moves != null)
+                return false;
+        } else if (!moves.equals(other.moves))
+            return false;
+        if (myPosition == null) {
+            if (other.myPosition != null)
+                return false;
+        } else if (!myPosition.equals(other.myPosition))
+            return false;
+        return true;
+    }
+
+    
 }   
 
