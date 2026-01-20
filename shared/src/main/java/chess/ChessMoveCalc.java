@@ -21,7 +21,7 @@ class ChessMoveCalc {
     }
 
     public boolean outBounds(int x, int y) {
-        if (x > 0 && x < 9 && y > 0 && y > 9) {
+        if (x > 0 && x < 9 && y > 0 && y < 9) {
             return true;
         }
 
@@ -40,9 +40,12 @@ class ChessMoveCalc {
     }
 
     public boolean update(int x, int y) {
+        
         int row = myPosition.getRow();
         int col = myPosition.getColumn();
         
+        if (!outBounds(x,y)) return false;
+
         ChessPiece space = board.getPiece(new ChessPosition(x,y));
 
         int block = isBlocked(space, piece);

@@ -80,6 +80,12 @@ public class ChessPiece {
             bis.pieceMoves(board, myPosition);
             return bis.moves;
         }
+
+        if(piece.getPieceType() == PieceType.KING) {
+            KingCalc king = new KingCalc(board, myPosition, moves);
+            king.pieceMoves(board, myPosition);
+            return king.moves;
+        }
                 
         if(piece.getPieceType() == PieceType.KNIGHT) {
             return List.of(new ChessMove(new ChessPosition(row, col), new ChessPosition(row-2, col+1), null),
