@@ -32,4 +32,11 @@ public class ChessPosition {
     public int getColumn() {
         return col;
     }
+
+    @Override
+    public String toString() {
+        return String.format("[%d,%d]", row, col);
+    }
+
+    
 }
