@@ -88,14 +88,27 @@ public class ChessPiece {
         }
                 
         if(piece.getPieceType() == PieceType.KNIGHT) {
-            return List.of(new ChessMove(new ChessPosition(row, col), new ChessPosition(row-2, col+1), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row-2, col-1), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row+2, col-1), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row+2, col+1), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row-1, col+2), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row-1, col-2), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row+1, col-2), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row+1, col+2), null));
+            KnightCalc knight = new KnightCalc(board, myPosition, moves);
+            knight.pieceMoves(board, myPosition);
+            return knight.moves;
+        }
+
+        if(piece.getPieceType() == PieceType.ROOK) {
+            RookCalc rook = new RookCalc(board, myPosition, moves);
+            rook.pieceMoves(board, myPosition);
+            return rook.moves;
+        }
+
+        if(piece.getPieceType() == PieceType.QUEEN) {
+            QueenCalc queen = new QueenCalc(board, myPosition, moves);
+            queen.pieceMoves(board, myPosition);
+            return queen.moves;
+        }
+
+        if(piece.getPieceType() == PieceType.PAWN) {
+            PawnCalc pawn = new PawnCalc(board, myPosition, moves);
+            pawn.pieceMoves(board, myPosition);
+            return pawn.moves;
         }
 
         return List.of();
