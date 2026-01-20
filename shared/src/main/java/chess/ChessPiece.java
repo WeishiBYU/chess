@@ -54,40 +54,15 @@ public class ChessPiece {
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         ChessPiece piece = board.getPiece(myPosition);
+        Collection<ChessMove> moves = List.of();
 
         int row = myPosition.getRow();
         int col = myPosition.getColumn();
 
         if(piece.getPieceType() == PieceType.BISHOP) {
-            return List.of(new ChessMove(new ChessPosition(row, col), new ChessPosition(row-1, col+1), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row+1, col+1), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row-1, col-1), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row+1, col-1), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row-2, col+2), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row+2, col+2), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row-2, col-2), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row+2, col-2), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row-3, col+3), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row+3, col+3), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row-3, col-3), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row+3, col-3), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row-4, col+4), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row+4, col+4), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row-4, col-4), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row+4, col-4), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row-5, col+5), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row+5, col+5), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row-5, col-5), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row+5, col-5), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row-6, col+6), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row+6, col+6), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row-6, col-6), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row+6, col-6), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row-7, col+7), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row+7, col+7), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row-7, col-7), null),
-                            new ChessMove(new ChessPosition(row, col), new ChessPosition(row+7, col-7), null)
-                            );
+            BishopCalc bis = new BishopCalc(board, myPosition, moves);
+            bis.pieceMoves(board, myPosition);
+            return bis.moves;
         }
                 
         if(piece.getPieceType() == PieceType.KNIGHT) {

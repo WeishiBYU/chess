@@ -1,7 +1,9 @@
 package chess;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Collection;
 
 class ChessMoveCalc {
 
@@ -14,7 +16,7 @@ class ChessMoveCalc {
     public ChessMoveCalc(ChessBoard board, ChessPosition myPosition, Collection<ChessMove> moves) {
         this.piece = board.getPiece(myPosition);
         this.board = board;
-        this.moves = moves;
+        this.moves = new ArrayList<>();
         this.myPosition = myPosition;
     }
 
@@ -37,7 +39,7 @@ class ChessMoveCalc {
         return 1;
     }
 
-        public boolean update(int x, int y) {
+    public boolean update(int x, int y) {
         int row = myPosition.getRow();
         int col = myPosition.getColumn();
         
@@ -48,13 +50,12 @@ class ChessMoveCalc {
         if (block > 0) {
             if (block == 2){
                 moves.add(new ChessMove(new ChessPosition(row, col), new ChessPosition(x, y), null));
-                    return false;
-                }
-                
                 return false;
+                }
+                moves.add(new ChessMove(new ChessPosition(row, col), new ChessPosition(x, y), null));
+                return true;
             }
-        moves.add(new ChessMove(new ChessPosition(row, col), new ChessPosition(x, y), null));
-        return true;
+        return false;
     }
 
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {

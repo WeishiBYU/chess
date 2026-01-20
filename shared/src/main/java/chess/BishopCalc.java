@@ -20,15 +20,16 @@ public class BishopCalc extends ChessMoveCalc {
             if (!update(x,y)) break;
         }
 
-        for (int x = row+1, y = col-1; x < 8 && y > 0; x++, y--) {
+        for (int x = row+1, y = col-1; x <= 8 && y > 0; x++, y--) {
+            if (!update(x,y)) break;
+
+        }
+
+        for (int x = row-1, y = col+1; x > 0 && y <= 8; x--, y++) {
             if (!update(x,y)) break;
         }
 
-        for (int x = row-1, y = col+1; x > 0 && y < 8; x--, y++) {
-            if (!update(x,y)) break;
-        }
-
-        for (int x = row+1, y = col+1; x < 8 && y < 8; x++, y++) {
+        for (int x = row+1, y = col+1; x <= 8 && y <= 8; x++, y++) {
             if (!update(x,y)) break;
         }
 
