@@ -45,22 +45,6 @@ public class ChessPiece {
         return type;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof ChessPiece other)) {
-            return false;
-        }
-        return pieceColor == other.pieceColor && type == other.type;
-    }
-
-    @Override
-    public int hashCode() {
-        return java.util.Objects.hash(pieceColor, type);
-    }
-
     /**
      * Calculates all the positions a chess piece can move to
      * Does not take into account moves that are illegal due to leaving the king in
@@ -71,9 +55,6 @@ public class ChessPiece {
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         ChessPiece piece = board.getPiece(myPosition);
         Collection<ChessMove> moves = List.of();
-
-        int row = myPosition.getRow();
-        int col = myPosition.getColumn();
 
         if(piece.getPieceType() == PieceType.BISHOP) {
             BishopCalc bis = new BishopCalc(board, myPosition, moves);
@@ -114,4 +95,19 @@ public class ChessPiece {
         return List.of();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ChessPiece other)) {
+            return false;
+        }
+        return pieceColor == other.pieceColor && type == other.type;
+    }
+
+    @Override
+    public int hashCode() {
+        return java.util.Objects.hash(pieceColor, type);
+    }
 }

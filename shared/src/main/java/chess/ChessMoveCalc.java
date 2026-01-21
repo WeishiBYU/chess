@@ -3,6 +3,9 @@ package chess;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import chess.ChessPiece.PieceType;
+
 import java.util.Collection;
 
 class ChessMoveCalc {
@@ -48,7 +51,11 @@ class ChessMoveCalc {
 
         ChessPiece space = board.getPiece(new ChessPosition(x,y));
 
-        int block = isBlocked(space, piece);
+        int block;
+
+        block = isBlocked(space, piece);
+
+        if (piece.getPieceType() == PieceType.PAWN && block == 2 && col == row) block = 0;
 
         if (block > 0) {
             if (block == 2){
