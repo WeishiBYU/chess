@@ -59,11 +59,13 @@ public class PawnCalc extends ChessMoveCalc {
             
         if (newRow == 1 || newRow == 8) proms(row,col,row+color, col);
         else update(newRow, col);
+        
+        ChessPiece space = board.getPiece(new ChessPosition(newRow, col));
 
-        if (color == 1 && row == 2) {
+        if (color == 1 && row == 2 && isBlocked(space, piece) == 1) {
             update(row+color*2, col);
         }
-        else if (color == -1 && row == 7) {
+        else if (color == -1 && row == 7 && isBlocked(space, piece) == 1) {
             update(row+color*2, col);
         }
 

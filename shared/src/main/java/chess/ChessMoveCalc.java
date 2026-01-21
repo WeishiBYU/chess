@@ -51,11 +51,9 @@ class ChessMoveCalc {
 
         ChessPiece space = board.getPiece(new ChessPosition(x,y));
 
-        int block;
+        int block = isBlocked(space, piece);
 
-        block = isBlocked(space, piece);
-
-        if (piece.getPieceType() == PieceType.PAWN && block == 2 && col == row) block = 0;
+        if (piece.getPieceType() == PieceType.PAWN && block == 2 && col == y) block = 0;
 
         if (block > 0) {
             if (block == 2){
