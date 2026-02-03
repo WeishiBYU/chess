@@ -1,6 +1,7 @@
 package chess;
 
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -11,7 +12,7 @@ import java.util.Collection;
 public class ChessGame {
     TeamColor color = TeamColor.WHITE;
     ChessBoard game = new ChessBoard();
-
+    Collection<ChessPosition>
 
     public ChessGame() {
     }
@@ -80,7 +81,7 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        ;
     }
 
     /**

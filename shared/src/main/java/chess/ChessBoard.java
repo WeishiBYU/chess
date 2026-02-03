@@ -23,7 +23,7 @@ public class ChessBoard {
      * @param piece    the piece to add
      */
     public void addPiece(ChessPosition position, ChessPiece piece) {
-        squares[position.getRow()-1][position.getColumn()-1] = piece;        
+        squares[position.getRow()-1][position.getColumn()-1] = piece;     
     }
 
     /**
@@ -37,6 +37,18 @@ public class ChessBoard {
         return squares[position.getRow()-1][position.getColumn()-1];        
     }
 
+    public ChessPosition getKing(ChessGame.TeamColor color) {
+        for (int x = 0; x < 8; x++) {
+            for (int y = 0; x < 8; x++) {
+                ChessPiece piece = squares[x][y];
+                if(piece.getPieceType() == ChessPiece.PieceType.KING && color == piece.getTeamColor()) {
+                    return new ChessPosition(x+1, y+1);
+                }
+            }
+        }
+        return null;
+    }
+    
     /**
      * Sets the board to the default starting board
      * (How the game of chess normally starts)
