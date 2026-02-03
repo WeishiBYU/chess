@@ -50,7 +50,7 @@ public class BishopMoveTests {
                 }
         );
     }
-
+    
 
     @Test
     public void bishopBlocked() {
