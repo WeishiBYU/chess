@@ -1,5 +1,7 @@
 package chess;
 
+import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
@@ -12,10 +14,56 @@ import java.util.Map;
 public class ChessGame {
     TeamColor color = TeamColor.WHITE;
     ChessBoard game = new ChessBoard();
-    Collection<ChessPosition>
+
+    Collection<ChessPosition> white = new ArrayList<>();
+    Collection<ChessMove> wMoves = new ArrayList<>();
+    ChessPosition wKing;
+    Collection<ChessPosition> black = new ArrayList<>();
+    Collection<ChessMove> bMoves = new ArrayList<>();
+    ChessPosition bKing;
 
     public ChessGame() {
     }
+
+    
+    public void cPieces() {
+        for (int x = 0; x < 8; x++) {
+            for (int y = 0; x < 8; x++) {
+                ChessPosition pos = new ChessPosition(x+1, y+1);
+                ChessPiece piece = game.getPiece(pos);
+
+                if (piece != null && TeamColor.WHITE == piece.getTeamColor()) {
+                    if(piece.getPieceType() == ChessPiece.PieceType.KING) {
+                        wKing = pos;
+                    }
+                    white.add(pos);
+                }
+                else if (piece != null && TeamColor.BLACK == piece.getTeamColor()) {
+                    if(piece.getPieceType() == ChessPiece.PieceType.KING) {
+                        bKing = pos;
+                    }
+                    black.add(pos);
+                }
+            }
+        }
+    }
+
+    public void cMoves(TeamColor teamColor) {
+        cPieces();
+        if (TeamColor.WHITE == teamColor) {
+            for(ChessPosition pos : white) {
+                ChessPiece p = game.getPiece(pos);
+                wMoves.addAll(p.pieceMoves(game, pos));
+            }
+        }
+        if (TeamColor.BLACK == teamColor) {
+            for(ChessPosition pos : black) {
+                ChessPiece p = game.getPiece(pos);
+                bMoves.addAll(p.pieceMoves(game, pos));
+            }
+        }
+    }   
+
 
     /**
      * @return Which team's turn it is
@@ -81,7 +129,29 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        ;
+        cMoves(teamColor);
+        
+        if (TeamColor.WHITE == teamColor) {
+            for(ChessMove move : bMoves) {
+                ChessPosition pos = move.getEndPosition();
+
+                if (pos.equals(wKing)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        else {
+            for(ChessMove move : wMoves) {
+                ChessPosition pos = move.getEndPosition();
+
+                if (pos.equals(bKing)) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
     /**

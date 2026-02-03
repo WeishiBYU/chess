@@ -37,16 +37,9 @@ public class ChessBoard {
         return squares[position.getRow()-1][position.getColumn()-1];        
     }
 
-    public ChessPosition getKing(ChessGame.TeamColor color) {
-        for (int x = 0; x < 8; x++) {
-            for (int y = 0; x < 8; x++) {
-                ChessPiece piece = squares[x][y];
-                if(piece.getPieceType() == ChessPiece.PieceType.KING && color == piece.getTeamColor()) {
-                    return new ChessPosition(x+1, y+1);
-                }
-            }
-        }
-        return null;
+    public ChessPiece[][] getBoard() {
+
+        return squares;
     }
     
     /**
