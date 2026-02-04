@@ -1,9 +1,7 @@
 package chess;
 
-import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -26,6 +24,7 @@ public class ChessGame {
     Collection<ChessMove> vMoves = new ArrayList<>();
 
     public ChessGame() {
+        game.resetBoard();
     }
     
     public void cPieces() {
