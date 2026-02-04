@@ -200,8 +200,15 @@ public class ChessGame {
         if (vMoves.contains(move)) {
             ChessPiece p = game.getPiece(move.getStartPosition());
 
+            TeamColor pC =  p.getTeamColor();
+
+            if (move.getPromotionPiece() != null) p = new ChessPiece(pC, move.getPromotionPiece());
+
             game.addPiece(move.getEndPosition(), p);
             game.removePiece(move.getStartPosition());
+
+            if (TeamColor.WHITE == color) setTeamTurn(TeamColor.BLACK);
+            else setTeamTurn(TeamColor.WHITE);
         }
     }
 
