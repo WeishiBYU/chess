@@ -18,6 +18,7 @@ public class ChessGame {
     Collection<ChessPosition> white = new ArrayList<>();
     Collection<ChessMove> wMoves = new ArrayList<>();
     ChessPosition wKing;
+
     Collection<ChessPosition> black = new ArrayList<>();
     Collection<ChessMove> bMoves = new ArrayList<>();
     ChessPosition bKing;
@@ -49,7 +50,8 @@ public class ChessGame {
         }
     }
 
-    public void cMoves(TeamColor teamColor) {
+
+    public void cMoves() {
         cPieces();
         for(ChessPosition pos : white) {
             ChessPiece p = game.getPiece(pos);
@@ -64,23 +66,65 @@ public class ChessGame {
         }
     }   
 
-    public Collection<ChessMove> moveCheck(Collection<ChessMove> moves) {
-        Collection<ChessMove> valMoves = new ArrayList<>();
+    public void moveCheck() {
+        Collection<ChessMove> w = new ArrayList<>();
+        Collection<ChessMove> b = new ArrayList<>();
 
-        for(ChessMove move: moves) {
+        for(ChessMove move: bMoves) {
             ChessBoard clone = game.makeCopy();
             ChessPiece piece = game.getPiece(move.getStartPosition());
+            
+            game.addPiece(move.getEndPosition(), piece);
+            game.removePiece(move.getStartPosition());
+
+            if (!isInCheck(TeamColor.BLACK)) b.add(move);
+
+            setBoard(clone);
+            
+            update();
+            cMoves();
+            //Make the move happen then check if it is in check then go back to the clone and if it was not in check add it to the v list.
+        }
+
+        for(ChessMove move: wMoves) {
+            ChessBoard clone = game.makeCopy();
+            ChessPiece piece = game.getPiece(move.getStartPosition());
+            
 
             game.addPiece(move.getEndPosition(), piece);
             game.removePiece(move.getStartPosition());
 
-            if (!isInCheck(color)) valMoves.add(move);
+            if (!isInCheck(TeamColor.WHITE)) w.add(move);
 
             setBoard(clone);
+            
+            update();
+            cMoves();
             //Make the move happen then check if it is in check then go back to the clone and if it was not in check add it to the v list.
         }
-        return valMoves;
+
+        bMoves = b;
+        wMoves = w;
     }
+
+
+    public void update() {
+        white = new ArrayList<>();
+        wMoves = new ArrayList<>();
+        wKing = null;
+
+        black = new ArrayList<>();
+        bMoves = new ArrayList<>();
+        bKing = null;
+    }
+
+    public void vMoves(TeamColor team) {
+        if (TeamColor.WHITE == team) {
+            vMoves = wMoves;
+        }
+
+        else vMoves = bMoves;
+    } 
 
     /**
      * @return Which team's turn it is
@@ -95,15 +139,10 @@ public class ChessGame {
      * @param team the team whose turn it is
      */
     public void setTeamTurn(TeamColor team) {
-        cMoves(team);
+        update();
+        cMoves();
 
         color = team;
-
-        if (color.equals(TeamColor.WHITE)) {
-            moveCheck(wMoves);
-        }
-
-        else moveCheck(bMoves);
     }
 
     /**
@@ -134,6 +173,9 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
+        moveCheck();
+        vMoves(color);
+
         if (vMoves.contains(move)) {
             ChessPiece p = game.getPiece(move.getStartPosition());
 
@@ -149,7 +191,8 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        cMoves(teamColor);
+        update();
+        cMoves();
 
         if (TeamColor.WHITE == teamColor) {
             for(ChessMove move : bMoves) {
@@ -181,8 +224,11 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        if (vMoves.size() != 0) return false;
-        return true;
+        moveCheck();
+        vMoves(teamColor);
+
+        if (vMoves.size() == 0 && isInCheck(teamColor) == true) return true;
+        return false;
     }
 
     /**
@@ -193,8 +239,12 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        if (vMoves.size() != 0) return false;
-        return true;    }
+        moveCheck();
+        vMoves(teamColor);
+
+        if (vMoves.size() == 0 && isInCheck(teamColor) == false) return true;
+        return false;    
+    }
 
     /**
      * Sets this game's chessboard with a given board
@@ -245,7 +295,7 @@ public class ChessGame {
     @Override
     public String toString() {
         return "ChessGame [color=" + color + ", game=" + game + ", white=" + white + ", wMoves=" + wMoves + ", wKing="
-                + wKing + ", black=" + black + ", bMoves=" + bMoves + ", bKing=" + bKing + ", vMoves=" + vMoves + "]";
+                + wKing + ", black=" + black + ", bMoves=" + bMoves + ", bKing=" + bKing + "]";
     }
 
     
