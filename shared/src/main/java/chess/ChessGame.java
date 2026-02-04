@@ -208,8 +208,11 @@ public class ChessGame {
             game.removePiece(move.getStartPosition());
 
             if (TeamColor.WHITE == color) setTeamTurn(TeamColor.BLACK);
+
             else setTeamTurn(TeamColor.WHITE);
         }
+        
+        else throw new InvalidMoveException("nope");
     }
 
     /**
