@@ -37,9 +37,18 @@ public class ChessBoard {
         return squares[position.getRow()-1][position.getColumn()-1];        
     }
 
-    public ChessPiece[][] getBoard() {
+    public void removePiece(ChessPosition position) {
+        squares[position.getRow()-1][position.getColumn()-1] = null;
+    }
 
-        return squares;
+    public ChessBoard makeCopy() {
+        ChessBoard copy = new ChessBoard();
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                copy.squares[row][col] = this.squares[row][col];
+            }
+        }
+        return copy;
     }
     
     /**
