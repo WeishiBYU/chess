@@ -66,6 +66,9 @@ public class ChessGame {
     }   
 
     public void moveCheck() {
+        update();
+        cMoves();
+
         Collection<ChessMove> w = new ArrayList<>();
         Collection<ChessMove> b = new ArrayList<>();
 
@@ -162,7 +165,26 @@ public class ChessGame {
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         ChessPiece piece = game.getPiece(startPosition);
 
-        return piece.pieceMoves(game, startPosition);
+        if (piece == null) {
+            return null;
+        }
+
+        update();
+        cMoves();
+
+        moveCheck();
+        vMoves(piece.getTeamColor());
+
+        Collection<ChessMove> rawMoves = piece.pieceMoves(game, startPosition);
+        Collection<ChessMove> validMoves = new ArrayList<>();
+
+        for (ChessMove move : rawMoves) {
+            if (vMoves.contains(move)) {
+                validMoves.add(move);
+            }
+        }
+
+        return validMoves;
     }
 
     /**
