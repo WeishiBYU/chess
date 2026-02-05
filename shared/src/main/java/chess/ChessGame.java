@@ -23,10 +23,21 @@ public class ChessGame {
 
     Collection<ChessMove> vMoves = new ArrayList<>();
 
+    // ChessPosition canPassant;
+    // ChessPosition canCastle;
+
     public ChessGame() {
         game.resetBoard();
     }
+
+    public boolean getCastle() {
+        return canCastle;
+    }
     
+    public boolean getPassant() {
+        return canPassant;
+    }
+
     public void cPieces() {
         for (int x = 0; x < 8; x++) {
             for (int y = 0; y < 8; y++) {
@@ -85,7 +96,6 @@ public class ChessGame {
             
             update();
             cMoves();
-            //Make the move happen then check if it is in check then go back to the clone and if it was not in check add it to the v list.
         }
 
         for(ChessMove move: wMoves) {
@@ -102,7 +112,6 @@ public class ChessGame {
             
             update();
             cMoves();
-            //Make the move happen then check if it is in check then go back to the clone and if it was not in check add it to the v list.
         }
 
         bMoves = b;
@@ -206,6 +215,9 @@ public class ChessGame {
 
             game.addPiece(move.getEndPosition(), p);
             game.removePiece(move.getStartPosition());
+
+            // int passant = move.getEndPosition().getColumn() - move.getStartPosition().getColumn();
+            // if(p.getPieceType() == ChessPiece.PieceType.PAWN && Math.abs(passant) == 2) canPassant = new ChessPosition;
 
             if (TeamColor.WHITE == color) setTeamTurn(TeamColor.BLACK);
 

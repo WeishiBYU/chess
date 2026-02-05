@@ -14,7 +14,6 @@ public class MoveRook extends MovePiece {
 
         for (int i = x+1, n = y; i > 0 && n > 0 && i < 9 && n < 9; i++) {
             if (!update(i,n)) break;
-            
         }
 
         for (int i = x, n = y+1; i > 0 && n > 0 && i < 9 && n < 9; n++) {
