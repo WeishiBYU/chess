@@ -30,13 +30,13 @@ public class ChessGame {
         game.resetBoard();
     }
 
-    public boolean getCastle() {
-        return canCastle;
-    }
+    // public boolean getCastle() {
+    //     return canCastle;
+    // }
     
-    public boolean getPassant() {
-        return canPassant;
-    }
+    // public boolean getPassant() {
+    //     return canPassant;
+    // }
 
     public void cPieces() {
         for (int x = 0; x < 8; x++) {
