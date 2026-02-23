@@ -22,3 +22,61 @@ These are the notes of my chess project!
         - For every move see if it put king in check by going through valid moves of the other team
     - Check if there is any valid moves
         -if not: stalemate
+
+- Imp 2 - 
+    - Fuctions/Endpoints for API
+        - create
+        - login
+        - logout
+        - list games
+        - Create Game
+        - join Game
+        - Clear Application
+            - Delete database
+    - Model Classes (Impletment stuff)
+        - UserData
+        - AuthData
+        - GameData
+    - Data Access Class
+        - Interface with DataBase
+            - Store into database
+            - Get information in the database
+        - DAO
+        - Methods
+            - Create
+            - Read
+            - Update
+            - Delete
+        - fuction throw DataAccessExpection
+    - Service Classes
+        - Implement Fuctions Being Called
+        - Use a Java Register
+            - User Service
+                - RegisterResult
+                    - Verify the input
+                    - Validate authToken
+                    - Check to make sure the requested username isn't already taken
+                    - Create a new User
+                    - Insert new user to db
+                    - Login the user
+                    - Return result
+                - LoginResult
+                - LogoutResult
+            - GameService
+                - list games
+                - Create Game
+                - join Game
+            - Clear Service
+                - Clear Application
+    - http Handler Classes
+        - Server 
+            - Inilize Classes
+                - Start handlers for all fuctions
+                - Coverts json to a object, call the service class, then will get a result
+    - Website
+        - Webpage
+    - Console Client
+    - Test 
+        - Test Driver
+        - Web Browser
+            - Testpage
