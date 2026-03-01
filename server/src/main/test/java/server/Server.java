@@ -16,12 +16,12 @@ public class Server {
 
         // Register your endpoints and exception handlers here.
         .post("/user", this::register);
-        .delete("/db", this::);
-        .post("/session", this::);
-        .get("/game", this::);
-        .post("/game", this::);
-        .put("/game", this::);
-        .exception(ResponseException.class, this::exceptionHandler)
+        .delete("/db", this::login);
+        .post("/session", this::logout);
+        .get("/game", this::listGames);
+        .post("/game", this::createGame);
+        .put("/game", this::joinGame);
+        .exception(ResponseException.class, this::exceptionHandler);
 
     }
 
@@ -40,11 +40,13 @@ public class Server {
     }
 
     private void clear(Context ctx) throws ResponseException {
-
+        service.clearDB();
+        ctx.status(204);
     }
 
     private void register(Context ctx) throws ResponseException {
-        
+        UserData user = new Gson().fromJson(ctx.body(), UserData.class);
+        user = service. 
     }
 
     private void login(Context ctx) throws ResponseException {
@@ -59,7 +61,7 @@ public class Server {
 
     }
 
-    private void creatGame(Context ctx) throws ResponseException {
+    private void createGame(Context ctx) throws ResponseException {
 
     }
 
