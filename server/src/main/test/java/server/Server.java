@@ -1,6 +1,7 @@
 package server;
 
 import io.javalin.*;
+import io.javalin.http.Context;
 import service.LoginService;
 import service.JoinGameService;
 import service.RegisterService;
@@ -40,8 +41,16 @@ public class Server {
     }
 
     private void clear(Context ctx) {
-        service.clearDB();
-        ctx.status(204);
+        try {
+            service.clearDB();
+            
+            ctx.status(200);
+            ctx.json(Map.of());
+        } catch (DataAccessException e) {
+            ctx.status(500);
+            ctx.json(Map.of("message", "Error: " + e.getMessage()));
+        }
+
     }
 
     private void register(Context ctx) {
