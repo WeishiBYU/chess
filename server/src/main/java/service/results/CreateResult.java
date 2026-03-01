@@ -1,5 +1,5 @@
 package service.results;
 
-public record CreateResult() {
+public record CreateResult(int gameID) {
     
 }

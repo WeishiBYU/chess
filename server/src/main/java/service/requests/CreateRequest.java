@@ -1,5 +1,5 @@
 package service.requests;
 
-public record CreateRequest() {
+public record CreateRequest(String authToken, String gameName) {
     
 }

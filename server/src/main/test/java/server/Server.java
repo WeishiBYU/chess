@@ -12,15 +12,15 @@ public class Server {
 
     public Server(ChessService service) {
         
-        javalin = Javalin.create(config -> config.staticFiles.add("web"));
+        javalin = Javalin.create(config -> config.staticFiles.add("web"))
 
         // Register your endpoints and exception handlers here.
-        .post("/user", this::register);
-        .delete("/db", this::login);
-        .post("/session", this::logout);
-        .get("/game", this::listGames);
-        .post("/game", this::createGame);
-        .put("/game", this::joinGame);
+        .post("/user", this::register)
+        .delete("/db", this::login)
+        .post("/session", this::logout)
+        .get("/game", this::listGames)
+        .post("/game", this::createGame)
+        .put("/game", this::joinGame)
         .exception(ResponseException.class, this::exceptionHandler);
 
     }
@@ -39,33 +39,45 @@ public class Server {
         ctx.result(ex.toJson());
     }
 
-    private void clear(Context ctx) throws ResponseException {
+    private void clear(Context ctx) {
         service.clearDB();
         ctx.status(204);
     }
 
-    private void register(Context ctx) throws ResponseException {
-        UserData user = new Gson().fromJson(ctx.body(), UserData.class);
-        user = service. 
+    private void register(Context ctx) {
+        try {
+            LoginRequest req = new Gson().fromJson(ctx.body(), RegisterRequest.class);
+            RegisterResult res = service.RegisterResult(req);
+
+            ctx.status(200);
+            ctx.json(res);
+        } catch (DataAccessException e) {
+            if (e.getMessage().contains("already taken")) {
+                ctx.status(403);
+            } else {
+                ctx.status(400);
+            }
+            ctx.json(Map.of("message", e.getMessage()));
+        }
     }
 
-    private void login(Context ctx) throws ResponseException {
+    private void login(Context ctx) {
 
     }
 
-    private void logout(Context ctx) throws ResponseException {
+    private void logout(Context ctx) {
 
     }
 
-    private void listGames(Context ctx) throws ResponseException {
+    private void listGames(Context ctx) {
 
     }
 
-    private void createGame(Context ctx) throws ResponseException {
+    private void createGame(Context ctx) {
 
     }
 
-    private void joinGame(Context ctx) throws ResponseException {
+    private void joinGame(Context ctx) {
 
     }
 }
