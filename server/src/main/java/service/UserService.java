@@ -7,12 +7,11 @@ import dataaccess.DataAccessException;
 import dataaccess.UserDAO;
 import model.AuthData;
 import model.UserData;
-import server.ResponseException;
 import service.requests.LoginRequest;
 import service.requests.LogoutRequest;
 import service.requests.RegisterRequest;
-import service.results.ClearResult;
 import service.results.LoginResult;
+import service.results.LogoutResult;
 import service.results.RegisterResult;
 
 public class UserService {
@@ -51,8 +50,8 @@ public class UserService {
     }
 
 	public LoginResult login(LoginRequest loginRequest) throws DataAccessException{
-        if (userDAO.getUser(loginRequest.username()) != null) {
-            throw new DataAccessException("username taken");
+        if (userDAO.getUser(loginRequest.username()).password() != loginRequest.password()) {
+            throw new DataAccessException("Error: unauthorized");
         }
         
         AuthData authData = new AuthData(
@@ -62,13 +61,23 @@ public class UserService {
 
         authDAO.createAuth(authData);
 
-        RegisterResult res = new RegisterResult();
+        LoginResult res = new LoginResult(authData.username(), authData.authToken());
         
         return res;
 
     }
 
-	public void logout(LogoutRequest logoutRequest) throws DataAccessException{}
+	public LogoutResult logout(LogoutRequest logoutRequest) throws DataAccessException{
+        if (authDAO.getAuth(logoutRequest.authToken()) == null) {
+            throw new DataAccessException("Error: unauthorized");
+        }
+        
+        authDAO.deleteAuth(logoutRequest.authToken());
+        
+        LogoutResult res = new LogoutResult();
+
+        return res;
+    }
 
     private String createToken() {
         return UUID.randomUUID().toString();

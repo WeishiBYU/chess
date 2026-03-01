@@ -11,7 +11,7 @@ public class AuthService {
         this.a = a;
     }
 
-    public ClearResult clear() throws DataAccessException {
+    public ListResult listGames() throws DataAccessException {
             a.clear();
 
             ClearResult res = new ClearResult();

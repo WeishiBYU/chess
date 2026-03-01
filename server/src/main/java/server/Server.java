@@ -97,10 +97,11 @@ public class Server {
 
     private void login(Context ctx) {
         try {
-            clearService.clear();
+            LoginRequest req = new Gson().fromJson(ctx.body(), LoginRequest.class);
+            LoginResult res = userService.login(req);
 
             ctx.status(200);
-            ctx.json(Map.of());
+            ctx.json(res);
         } catch (DataAccessException e) {
             ctx.status(500);
             ctx.json(Map.of("message", "Error: " + e.getMessage()));
@@ -109,10 +110,11 @@ public class Server {
 
     private void logout(Context ctx) {
         try {
-            clearService.clear();
+            LogoutRequest req = new Gson().fromJson(ctx.body(), LogoutRequest.class);
+            LogoutResult res = userService.logout(req);
 
             ctx.status(200);
-            ctx.json(Map.of());
+            ctx.json(res);
         } catch (DataAccessException e) {
             ctx.status(500);
             ctx.json(Map.of("message", "Error: " + e.getMessage()));
