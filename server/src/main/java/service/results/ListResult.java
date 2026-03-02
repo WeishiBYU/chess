@@ -1,5 +1,7 @@
 package service.results;
+import model.GameData;
+import java.util.Collection;
 
-public record ListResult() {
+public record ListResult(Collection<GameData> games) {
     
 }

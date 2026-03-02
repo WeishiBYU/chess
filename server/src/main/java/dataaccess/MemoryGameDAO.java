@@ -1,7 +1,7 @@
 package dataaccess;
 
 import java.util.HashMap;
-
+import java.util.Collection;
 import model.GameData;
 
 public class MemoryGameDAO implements GameDAO {
@@ -21,8 +21,8 @@ public class MemoryGameDAO implements GameDAO {
     }
 
     @Override
-    public HashMap<Integer, GameData> listGames() throws DataAccessException {
-        return games;
+    public Collection<GameData> listGames() throws DataAccessException {
+        return games.values();
     }
 
     @Override

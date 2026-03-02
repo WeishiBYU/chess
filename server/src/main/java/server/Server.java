@@ -19,7 +19,6 @@ import io.javalin.http.Context;
 public class Server {
     private final UserService userService;
     private final ClearService clearService;
-    private final AuthService authService;
     private final GameService gameService;
     private final UserDAO userDAO;
     private final AuthDAO authDAO;
@@ -34,7 +33,6 @@ public class Server {
 
         this.userService = new UserService(userDAO, authDAO);
         this.clearService = new ClearService(userDAO, authDAO, gameDAO);
-        this.authService = new AuthService(authDAO);
         this.gameService = new GameService(authDAO, gameDAO);
 
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
@@ -123,10 +121,17 @@ public class Server {
 
     private void listGames(Context ctx) {
         try {
-            clearService.clear();
+            String auth = ctx.header("authorization");
+
+            if (authDAO.getAuth(auth) == null) {
+                throw new DataAccessException("Error: unauthorized");
+            }
+            
+            ListRequest req = new ListRequest(auth);
+            ListResult res = gameService.listGames(req);
 
             ctx.status(200);
-            ctx.json(Map.of());
+            ctx.json(res);
         } catch (DataAccessException e) {
             ctx.status(500);
             ctx.json(Map.of("message", "Error: " + e.getMessage()));
@@ -135,10 +140,17 @@ public class Server {
 
     private void createGame(Context ctx) {
         try {
-            clearService.clear();
+            String auth = ctx.header("authorization");
+
+            if (authDAO.getAuth(auth) == null) {
+                throw new DataAccessException("Error: unauthorized");
+            }
+
+            CreateRequest req = ctx.bodyAsClass(CreateRequest.class);
+            CreateResult res = gameService.createGame(req);
 
             ctx.status(200);
-            ctx.json(Map.of());
+            ctx.json(res);
         } catch (DataAccessException e) {
             ctx.status(500);
             ctx.json(Map.of("message", "Error: " + e.getMessage()));
@@ -147,13 +159,21 @@ public class Server {
 
     private void joinGame(Context ctx) {
         try {
-            clearService.clear();
+            String auth = ctx.header("authorization");
+
+            JoinRequest req = ctx.bodyAsClass(JoinRequest.class);
+            JoinResult res = gameService.joinGame(req, auth);
 
             ctx.status(200);
-            ctx.json(Map.of());
+            ctx.json(res);
         } catch (DataAccessException e) {
             ctx.status(500);
             ctx.json(Map.of("message", "Error: " + e.getMessage()));
         }
     }
+
+    // private void authEx(String auth) {
+    //     if (authDAO.getAuth(auth) == null) {
+    //         throw new DataAccessException("Error: unauthorized");        }
+    // }
 }

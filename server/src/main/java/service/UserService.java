@@ -13,6 +13,8 @@ import service.requests.RegisterRequest;
 import service.results.LoginResult;
 import service.results.LogoutResult;
 import service.results.RegisterResult;
+import service.requests.UserRequest;
+import service.results.UserResult;
 
 public class UserService {
     private final UserDAO userDAO;
@@ -66,6 +68,19 @@ public class UserService {
         return res;
 
     }
+    public UserResult user(UserRequest userRequest) throws DataAccessException{
+        if (authDAO.getAuth(userRequest.auth()) == null) {
+            throw new DataAccessException("Error: unauthorized");
+        }
+        
+        AuthData auth = authDAO.getAuth(userRequest.auth());
+        String user = auth.username();
+        
+        UserResult res = new UserResult(user);
+
+        return res;
+    }
+
 
 	public LogoutResult logout(LogoutRequest logoutRequest) throws DataAccessException{
         if (authDAO.getAuth(logoutRequest.authToken()) == null) {
