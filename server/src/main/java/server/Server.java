@@ -37,7 +37,6 @@ public class Server {
 
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
 
-        // Register your endpoints and exception handlers here.
         .post("/user", this::register)
         .delete("/db", this::clear)
         .post("/session", this::login)
@@ -186,8 +185,4 @@ public class Server {
         }
     }
 
-    // private void authEx(String auth) {
-    //     if (authDAO.getAuth(auth) == null) {
-    //         throw new DataAccessException("Error: unauthorized");        }
-    // }
 }

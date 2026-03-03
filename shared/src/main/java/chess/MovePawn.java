@@ -10,7 +10,7 @@ public class MovePawn extends MovePiece {
             super(board, myPosition);
     }
 
-    private void Promupdate(ChessPosition pos) {
+    private void promUpdate(ChessPosition pos) {
 
         if (outBound(pos.getRow(), pos.getColumn())) return;
 
@@ -26,15 +26,15 @@ public class MovePawn extends MovePiece {
     private void pawnProm(ChessPosition left, ChessPosition up, ChessPosition right) {
 
         if (blocked(up) == 1) {
-            Promupdate(up);
+            promUpdate(up);
         }
         
         if (blocked(left) == 2) {
-            Promupdate(left);
+            promUpdate(left);
         }
 
         if (blocked(right) == 2) {
-            Promupdate(right);
+            promUpdate(right);
         }
         
     }

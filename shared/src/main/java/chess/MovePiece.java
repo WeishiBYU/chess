@@ -49,4 +49,19 @@ public class MovePiece {
 
         return false;
     }
+
+    protected void sweepDirections(int[][] dirs) {
+        int x = myPosition.getRow();
+        int y = myPosition.getColumn();
+
+        for (int[] d : dirs) {
+            int i = x + d[0];
+            int n = y + d[1];
+            while (!outBound(i, n)) {
+                if (!update(i, n)) break;
+                i += d[0];
+                n += d[1];
+            }
+        }
+    }
 }
