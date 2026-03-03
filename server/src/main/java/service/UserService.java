@@ -46,14 +46,17 @@ public class UserService {
 
         authDAO.createAuth(authData);
 
-        RegisterResult res = new RegisterResult();
+        RegisterResult res = new RegisterResult(authData.username(), authData.authToken());
         
         return res;
     }
 
 	public LoginResult login(LoginRequest loginRequest) throws DataAccessException{
-        if (userDAO.getUser(loginRequest.username()).password() != loginRequest.password()) {
+        UserData user = userDAO.getUser(loginRequest.username());
+
+        if (user == null || !user.password().equals(loginRequest.password())) {
             throw new DataAccessException("Error: unauthorized");
+
         }
         
         AuthData authData = new AuthData(

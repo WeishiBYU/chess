@@ -68,10 +68,10 @@ public class Server {
             clearService.clear();
 
             ctx.status(200);
-            ctx.json(Map.of());
+            ctx.result(new Gson().toJson(Map.of()));
         } catch (DataAccessException e) {
             ctx.status(500);
-            ctx.json(Map.of("message", "Error: " + e.getMessage()));
+            ctx.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
         }
 
     }
@@ -82,14 +82,14 @@ public class Server {
             RegisterResult res = userService.register(req);
 
             ctx.status(200);
-            ctx.json(res);
+            ctx.result(new Gson().toJson(res));
         } catch (DataAccessException e) {
             if (e.getMessage().contains("already taken")) {
                 ctx.status(403);
             } else {
                 ctx.status(400);
             }
-            ctx.json(Map.of("message", e.getMessage()));
+            ctx.result(new Gson().toJson(Map.of("message", e.getMessage())));
         }
     }
 
@@ -99,23 +99,24 @@ public class Server {
             LoginResult res = userService.login(req);
 
             ctx.status(200);
-            ctx.json(res);
+            ctx.result(new Gson().toJson(res));
         } catch (DataAccessException e) {
             ctx.status(500);
-            ctx.json(Map.of("message", "Error: " + e.getMessage()));
+            ctx.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
         }
     }
 
     private void logout(Context ctx) {
         try {
-            LogoutRequest req = new Gson().fromJson(ctx.body(), LogoutRequest.class);
+            String auth = ctx.header("authorization");
+            LogoutRequest req = new LogoutRequest(auth);
             LogoutResult res = userService.logout(req);
 
             ctx.status(200);
-            ctx.json(res);
+            ctx.result(new Gson().toJson(res));
         } catch (DataAccessException e) {
             ctx.status(500);
-            ctx.json(Map.of("message", "Error: " + e.getMessage()));
+            ctx.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
         }
     }
 
@@ -130,11 +131,13 @@ public class Server {
             ListRequest req = new ListRequest(auth);
             ListResult res = gameService.listGames(req);
 
+            
+
             ctx.status(200);
-            ctx.json(res);
+            ctx.result(new Gson().toJson(res));
         } catch (DataAccessException e) {
             ctx.status(500);
-            ctx.json(Map.of("message", "Error: " + e.getMessage()));
+            ctx.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
         }
     }
 
@@ -146,14 +149,14 @@ public class Server {
                 throw new DataAccessException("Error: unauthorized");
             }
 
-            CreateRequest req = ctx.bodyAsClass(CreateRequest.class);
+            CreateRequest req = new Gson().fromJson(ctx.body(), CreateRequest.class);
             CreateResult res = gameService.createGame(req);
 
             ctx.status(200);
-            ctx.json(res);
+            ctx.result(new Gson().toJson(res));
         } catch (DataAccessException e) {
             ctx.status(500);
-            ctx.json(Map.of("message", "Error: " + e.getMessage()));
+            ctx.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
         }
     }
 
@@ -161,14 +164,14 @@ public class Server {
         try {
             String auth = ctx.header("authorization");
 
-            JoinRequest req = ctx.bodyAsClass(JoinRequest.class);
+            JoinRequest req = new Gson().fromJson(ctx.body(), JoinRequest.class);
             JoinResult res = gameService.joinGame(req, auth);
 
             ctx.status(200);
-            ctx.json(res);
+            ctx.result(new Gson().toJson(res));
         } catch (DataAccessException e) {
             ctx.status(500);
-            ctx.json(Map.of("message", "Error: " + e.getMessage()));
+            ctx.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
         }
     }
 

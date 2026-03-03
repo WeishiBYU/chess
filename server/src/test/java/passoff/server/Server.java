@@ -1,4 +1,4 @@
-package server;
+package passoff.server;
 
 import java.util.Map;
 import com.google.gson.Gson;
