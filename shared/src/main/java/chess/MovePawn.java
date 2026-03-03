@@ -12,7 +12,9 @@ public class MovePawn extends MovePiece {
 
     private void promUpdate(ChessPosition pos) {
 
-        if (outBound(pos.getRow(), pos.getColumn())) return;
+        if (outBound(pos.getRow(), pos.getColumn())) {
+            return;
+        }
 
         if (blocked(pos) > 0) {
             moves.add(new ChessMove(myPosition, pos, ChessPiece.PieceType.KNIGHT));
@@ -88,9 +90,13 @@ public class MovePawn extends MovePiece {
             update(x+dir+dir, y);
         }
 
-        if (x == prom) pawnProm(left, up, right);
+        if (x == prom) {
+            pawnProm(left, up, right);
+        }
 
-        else pawnMove(left, up, right);
+        else {
+            pawnMove(left, up, right);
+        }
 
         return moves;
     }
