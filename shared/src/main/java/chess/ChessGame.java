@@ -79,7 +79,9 @@ public class ChessGame {
             game.addPiece(move.getEndPosition(), piece);
             game.removePiece(move.getStartPosition());
 
-            if (!isInCheck(TeamColor.BLACK)) b.add(move);
+            if (!isInCheck(TeamColor.BLACK)) {
+                b.add(move);
+            }
 
             setBoard(clone);
             
@@ -95,7 +97,9 @@ public class ChessGame {
             game.addPiece(move.getEndPosition(), piece);
             game.removePiece(move.getStartPosition());
 
-            if (!isInCheck(TeamColor.WHITE)) w.add(move);
+            if (!isInCheck(TeamColor.WHITE)) {
+                w.add(move);
+            }
 
             setBoard(clone);
             
@@ -123,7 +127,9 @@ public class ChessGame {
             vMoves = wMoves;
         }
 
-        else vMoves = bMoves;
+        else {
+            vMoves = bMoves;
+        }
     } 
 
     /**
@@ -200,17 +206,25 @@ public class ChessGame {
 
             TeamColor pC =  p.getTeamColor();
 
-            if (move.getPromotionPiece() != null) p = new ChessPiece(pC, move.getPromotionPiece());
+            if (move.getPromotionPiece() != null) {
+                p = new ChessPiece(pC, move.getPromotionPiece());
+            }
 
             game.addPiece(move.getEndPosition(), p);
             game.removePiece(move.getStartPosition());
 
-            if (TeamColor.WHITE == color) setTeamTurn(TeamColor.BLACK);
+            if (TeamColor.WHITE == color) {
+                setTeamTurn(TeamColor.BLACK);
+            }
 
-            else setTeamTurn(TeamColor.WHITE);
+            else {
+                setTeamTurn(TeamColor.WHITE);
+            }
         }
         
-        else throw new InvalidMoveException("nope");
+        else {
+            throw new InvalidMoveException("nope");
+        }
     }
 
     /**
@@ -256,7 +270,9 @@ public class ChessGame {
         moveCheck();
         vMoves(teamColor);
 
-        if (vMoves.size() == 0 && isInCheck(teamColor) == true) return true;
+        if (vMoves.size() == 0 && isInCheck(teamColor) == true) {
+            return true;
+        }
         return false;
     }
 
@@ -271,7 +287,9 @@ public class ChessGame {
         moveCheck();
         vMoves(teamColor);
 
-        if (vMoves.size() == 0 && isInCheck(teamColor) == false) return true;
+        if (vMoves.size() == 0 && isInCheck(teamColor) == false) {
+            return true;
+        }
         return false;    
     }
 
@@ -304,20 +322,26 @@ public class ChessGame {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (obj == null)
+        }
+        if (obj == null) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (getClass() != obj.getClass()) {
             return false;
+        }
         ChessGame other = (ChessGame) obj;
-        if (color != other.color)
+        if (color != other.color) {
             return false;
+        }
         if (game == null) {
-            if (other.game != null)
+            if (other.game != null) {
                 return false;
-        } else if (!game.equals(other.game))
+            }
+        } else if (!game.equals(other.game)) {
             return false;
+        }
         return true;
     }
 
