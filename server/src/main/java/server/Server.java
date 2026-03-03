@@ -90,6 +90,9 @@ public class Server {
                 ctx.status(400);
             }
             ctx.result(new Gson().toJson(Map.of("message", e.getMessage())));
+        } catch (ResponseException e) {
+            ctx.status(e.toHttpStatusCode());
+            ctx.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
         }
     }
 
@@ -103,7 +106,10 @@ public class Server {
         } catch (DataAccessException e) {
             ctx.status(500);
             ctx.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
-        }
+        } catch (ResponseException e) {
+            ctx.status(e.toHttpStatusCode());
+            ctx.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
+        } 
     }
 
     private void logout(Context ctx) {
@@ -117,7 +123,10 @@ public class Server {
         } catch (DataAccessException e) {
             ctx.status(500);
             ctx.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
-        }
+        } catch (ResponseException e) {
+            ctx.status(e.toHttpStatusCode());
+            ctx.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
+        } 
     }
 
     private void listGames(Context ctx) {
@@ -125,18 +134,19 @@ public class Server {
             String auth = ctx.header("authorization");
 
             if (authDAO.getAuth(auth) == null) {
-                throw new DataAccessException("Error: unauthorized");
+                throw new ResponseException(401, "Error: unauthorized");
             }
             
             ListRequest req = new ListRequest(auth);
             ListResult res = gameService.listGames(req);
 
-            
-
             ctx.status(200);
             ctx.result(new Gson().toJson(res));
         } catch (DataAccessException e) {
             ctx.status(500);
+            ctx.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
+        } catch (ResponseException e) {
+            ctx.status(e.toHttpStatusCode());
             ctx.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
         }
     }
@@ -146,7 +156,7 @@ public class Server {
             String auth = ctx.header("authorization");
 
             if (authDAO.getAuth(auth) == null) {
-                throw new DataAccessException("Error: unauthorized");
+                throw new ResponseException(401, "Error: unauthorized");
             }
 
             CreateRequest req = new Gson().fromJson(ctx.body(), CreateRequest.class);
@@ -156,6 +166,9 @@ public class Server {
             ctx.result(new Gson().toJson(res));
         } catch (DataAccessException e) {
             ctx.status(500);
+            ctx.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
+        } catch (ResponseException e) {
+            ctx.status(e.toHttpStatusCode());
             ctx.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
         }
     }
@@ -171,6 +184,9 @@ public class Server {
             ctx.result(new Gson().toJson(res));
         } catch (DataAccessException e) {
             ctx.status(500);
+            ctx.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
+        } catch (ResponseException e) {
+            ctx.status(e.toHttpStatusCode());
             ctx.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
         }
     }

@@ -17,6 +17,7 @@ import java.util.Collection;
 
 import model.GameData;
 import model.GameSum;
+import server.ResponseException;
 import model.AuthData;
 
 
@@ -31,14 +32,18 @@ public class GameService {
         this.gameDAO = g;
     }
 
-    public ListResult listGames(ListRequest listRequest) throws DataAccessException {
+    public ListResult listGames(ListRequest listRequest) throws DataAccessException, ResponseException {
         Collection<GameData> games = gameDAO.listGames();
 
         return new ListResult(games);
     }
 
-    public CreateResult createGame(CreateRequest req) throws DataAccessException {
+    public CreateResult createGame(CreateRequest req) throws DataAccessException, ResponseException {
         id++;
+
+        if (req.gameName() == null) {
+            throw new ResponseException(400, "Error: unauthorized");
+        }
 
         ChessGame chess = new ChessGame();
 
@@ -51,21 +56,21 @@ public class GameService {
         return res;
     }
 
-    public JoinResult joinGame(JoinRequest req, String authToken) throws DataAccessException {
+    public JoinResult joinGame(JoinRequest req, String authToken) throws DataAccessException, ResponseException {
         AuthData auth = authDAO.getAuth(authToken);
 
         if (auth == null) {
-            throw new DataAccessException("unauthorized user");
+            throw new ResponseException(401, "unauthorized user");
         } 
         
         GameData game = gameDAO.getGame(req.gameID());
 
-        if (game == null) {
-            throw new DataAccessException("No Game");
+        if (game == null || req.playerColor() == null) {
+            throw new ResponseException(400, "bad request");
         } else if (req.playerColor().equals("WHITE") && game.whiteUsername() != null) {
-            throw new DataAccessException("Color has player");
+            throw new ResponseException(403, "Color has player");
         } else if (req.playerColor().equals("BLACK") && game.blackUsername() != null) {
-            throw new DataAccessException("Color has player");
+            throw new ResponseException(403, "Color has player");
         }
 
         if (req.playerColor().equals("WHITE")) {
@@ -74,7 +79,11 @@ public class GameService {
         } else if (req.playerColor().equals("BLACK")) {
             GameData join = new GameData(req.gameID(), game.whiteUsername(), auth.username(), game.gameName(), game.game());
             gameDAO.updateGame(join);
-        }        
+        } else {
+                throw new ResponseException(400, "bad request");
+        }
+
+
         JoinResult res = new JoinResult();
 
         return res;

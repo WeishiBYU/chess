@@ -7,6 +7,7 @@ import dataaccess.DataAccessException;
 import dataaccess.UserDAO;
 import model.AuthData;
 import model.UserData;
+import server.ResponseException;
 import service.requests.LoginRequest;
 import service.requests.LogoutRequest;
 import service.requests.RegisterRequest;
@@ -26,9 +27,13 @@ public class UserService {
 
     }
 
-    public RegisterResult register(RegisterRequest registerRequest) throws DataAccessException {
+    public RegisterResult register(RegisterRequest registerRequest) throws DataAccessException, ResponseException {
         if (userDAO.getUser(registerRequest.username()) != null) {
-            throw new DataAccessException("username taken");
+            throw new ResponseException(403, "username taken");
+        }
+
+        if (registerRequest.username() == null || registerRequest.password() == null || registerRequest.email() == null) {
+           throw new ResponseException(400, "bad request"); 
         }
 
         UserData userData = new UserData(
@@ -51,12 +56,15 @@ public class UserService {
         return res;
     }
 
-	public LoginResult login(LoginRequest loginRequest) throws DataAccessException{
+	public LoginResult login(LoginRequest loginRequest) throws DataAccessException, ResponseException{
         UserData user = userDAO.getUser(loginRequest.username());
 
-        if (user == null || !user.password().equals(loginRequest.password())) {
-            throw new DataAccessException("Error: unauthorized");
+        if (loginRequest.username() == null || loginRequest.password() == null) {
+           throw new ResponseException(400, "bad request"); 
+        }
 
+        if (user == null || !user.password().equals(loginRequest.password())) {
+            throw new ResponseException(401, "Error: unauthorized");
         }
         
         AuthData authData = new AuthData(
@@ -85,9 +93,9 @@ public class UserService {
     }
 
 
-	public LogoutResult logout(LogoutRequest logoutRequest) throws DataAccessException{
+	public LogoutResult logout(LogoutRequest logoutRequest) throws DataAccessException, ResponseException {
         if (authDAO.getAuth(logoutRequest.authToken()) == null) {
-            throw new DataAccessException("Error: unauthorized");
+            throw new ResponseException(401, "Error: unauthorized");
         }
         
         authDAO.deleteAuth(logoutRequest.authToken());
