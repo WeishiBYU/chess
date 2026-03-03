@@ -79,18 +79,6 @@ public class UserService {
         return res;
 
     }
-    public UserResult user(UserRequest userRequest) throws DataAccessException{
-        if (authDAO.getAuth(userRequest.auth()) == null) {
-            throw new DataAccessException("Error: unauthorized");
-        }
-        
-        AuthData auth = authDAO.getAuth(userRequest.auth());
-        String user = auth.username();
-        
-        UserResult res = new UserResult(user);
-
-        return res;
-    }
 
 
 	public LogoutResult logout(LogoutRequest logoutRequest) throws DataAccessException, ResponseException {

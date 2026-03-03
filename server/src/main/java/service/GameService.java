@@ -26,13 +26,17 @@ public class GameService {
     private final AuthDAO authDAO;
     private final GameDAO gameDAO;
     private int id = 0;
-
+    
     public GameService(AuthDAO a, GameDAO g) {
         this.authDAO = a;
         this.gameDAO = g;
     }
 
     public ListResult listGames(ListRequest listRequest) throws DataAccessException, ResponseException {
+        if (authDAO.getAuth(listRequest.authToken()) == null) {
+            throw new ResponseException(401, "unauthorized");
+        }
+        
         Collection<GameData> games = gameDAO.listGames();
 
         return new ListResult(games);
@@ -42,7 +46,7 @@ public class GameService {
         id++;
 
         if (req.gameName() == null) {
-            throw new ResponseException(400, "Error: unauthorized");
+            throw new ResponseException(400, "Error: bad request");
         }
 
         ChessGame chess = new ChessGame();

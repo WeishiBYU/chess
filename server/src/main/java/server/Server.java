@@ -132,11 +132,6 @@ public class Server {
     private void listGames(Context ctx) {
         try {
             String auth = ctx.header("authorization");
-
-            if (authDAO.getAuth(auth) == null) {
-                throw new ResponseException(401, "Error: unauthorized");
-            }
-            
             ListRequest req = new ListRequest(auth);
             ListResult res = gameService.listGames(req);
 
