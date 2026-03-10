@@ -80,3 +80,8 @@ These are the notes of my chess project!
         - Test Driver
         - Web Browser
             - Testpage
+
+
+
+
+Server: mysqlsh -u root -ps160452W* --sql
