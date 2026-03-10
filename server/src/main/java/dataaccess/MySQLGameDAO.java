@@ -3,7 +3,6 @@ package dataaccess;
 import com.google.gson.Gson;
 
 import chess.ChessGame;
-import server.ResponseException;
 import model.*;
 
 import java.sql.*;
@@ -11,79 +10,93 @@ import java.sql.*;
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
 import static java.sql.Types.NULL;
 
+import java.util.ArrayList;
+import java.util.Collection;
 
-public class MySQLGameDAO implements UserDAO {
+public class MySQLGameDAO implements GameDAO {
 
-    public MySQLGameDAO() throws ResponseException {
+    public MySQLGameDAO() throws DataAccessException {
         configureDatabase();
     }
 
-    public Pet addPet(Pet pet) throws ResponseException {
-        var statement = "INSERT INTO pet (name, type, json) VALUES (?, ?, ?)";
-        String json = new Gson().toJson(pet);
-        int id = executeUpdate(statement, pet.name(), pet.type(), json);
-        return new Pet(id, pet.name(), pet.type());
+    @Override
+    public void createGame(GameData gameData) throws DataAccessException {
+
+        String game = new Gson().toJson(gameData.game());
+
+        var statement = "INSERT INTO game (whiteUsername, blackUsername, gameName, game) VALUES (?, ?, ?, ?)";
+        executeUpdate(statement, gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), game);
     }
 
-    public Pet getPet(int id) throws ResponseException {
+    @Override
+    public GameData getGame(int id) throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT id, json FROM pet WHERE id=?";
+            var statement = "SELECT id, whiteUsername, blackUsername, gameName, game FROM game WHERE id=?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 ps.setInt(1, id);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        return readPet(rs);
+                        return readGame(rs);
                     }
                 }
             }
         } catch (Exception e) {
-            throw new ResponseException(ResponseException.Code.ServerError, String.format("Unable to read data: %s", e.getMessage()));
+            throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()), e);
         }
         return null;
     }
-
-    public PetList listPets() throws ResponseException {
-        var result = new PetList();
+    
+    @Override
+    public Collection<GameData> listGames() throws DataAccessException {
+        Collection<GameData> result = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT id, json FROM pet";
+            var statement = "SELECT id, whiteUsername, blackUsername, gameName, game FROM game";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
-                        result.add(readPet(rs));
+                        result.add(readGame(rs));
                     }
                 }
             }
         } catch (Exception e) {
-            throw new ResponseException(ResponseException.Code.ServerError, String.format("Unable to read data: %s", e.getMessage()));
+            throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()), e);
         }
         return result;
     }
 
-    public void deletePet(Integer id) throws ResponseException {
-        var statement = "DELETE FROM pet WHERE id=?";
-        executeUpdate(statement, id);
+    @Override
+    public void updateGame(GameData gameData) throws DataAccessException {
+
+        String game = new Gson().toJson(gameData.game());
+
+        var statement = "UPDATE game SET whiteUsername=?, blackUsername=?, gameName=?, game=? WHERE id=?";
+        executeUpdate(statement, gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), game, gameData.gameID());
     }
 
-    public void deleteAllPets() throws ResponseException {
-        var statement = "TRUNCATE pet";
+    @Override
+    public void clear() throws DataAccessException {
+        var statement = "TRUNCATE game";
         executeUpdate(statement);
     }
 
-    private Pet readPet(ResultSet rs) throws SQLException {
+    private GameData readGame(ResultSet rs) throws SQLException {
         var id = rs.getInt("id");
-        var json = rs.getString("json");
-        Pet pet = new Gson().fromJson(json, Pet.class);
-        return pet.setId(id);
+        var whiteUsername = rs.getString("whiteUsername");
+        var blackUsername = rs.getString("blackUsername");
+        var gameName = rs.getString("gameName");
+        var json = rs.getString("game");
+        ChessGame game = new Gson().fromJson(json, ChessGame.class);
+
+        return new GameData(id, whiteUsername, blackUsername, gameName, game);
     }
 
-    private int executeUpdate(String statement, Object... params) throws ResponseException {
+    private int executeUpdate(String statement, Object... params) throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
             try (PreparedStatement ps = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
                 for (int i = 0; i < params.length; i++) {
                     Object param = params[i];
                     if (param instanceof String p) ps.setString(i + 1, p);
                     else if (param instanceof Integer p) ps.setInt(i + 1, p);
-                    else if (param instanceof PetType p) ps.setString(i + 1, p.toString());
                     else if (param == null) ps.setNull(i + 1, NULL);
                 }
                 ps.executeUpdate();
@@ -96,7 +109,7 @@ public class MySQLGameDAO implements UserDAO {
                 return 0;
             }
         } catch (SQLException e) {
-            throw new ResponseException(ResponseException.Code.ServerError, String.format("unable to update database: %s, %s", statement, e.getMessage()));
+            throw new DataAccessException(String.format("unable to update database: %s, %s", statement, e.getMessage()), e);
         }
     }
     private final String[] createStatements = {
@@ -106,17 +119,15 @@ public class MySQLGameDAO implements UserDAO {
               `whiteUsername` varchar(256) DEFAULT NULL,
               `blackUsername` varchar(256) DEFAULT NULL,
               `gameName` varchar(256) NOT NULL,
-              `game` ENUM('CAT', 'DOG', 'FISH', 'FROG', 'ROCK') DEFAULT 'CAT',
-              `json` TEXT DEFAULT NULL,
+              `game` TEXT NOT NULL,
               PRIMARY KEY (`id`),
-              INDEX(type),
-              INDEX(name)
+              INDEX(gameName)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
             """
     };
 
 
-    private void configureDatabase() throws ResponseException {
+    private void configureDatabase() throws DataAccessException {
         DatabaseManager.createDatabase();
         try (Connection conn = DatabaseManager.getConnection()) {
             for (String statement : createStatements) {
@@ -125,7 +136,7 @@ public class MySQLGameDAO implements UserDAO {
                 }
             }
         } catch (SQLException ex) {
-            throw new ResponseException(ResponseException.Code.ServerError, String.format("Unable to configure database: %s", ex.getMessage()));
+            throw new DataAccessException(String.format("Unable to configure database: %s", ex.getMessage()), ex);
         }
     }
 }
