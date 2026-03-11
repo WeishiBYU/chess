@@ -5,13 +5,7 @@ import com.google.gson.Gson;
 import service.*;
 import service.requests.*;
 import service.results.*;
-import dataaccess.AuthDAO;
-import dataaccess.DataAccessException;
-import dataaccess.GameDAO;
-import dataaccess.MySQLAuthDAO;
-import dataaccess.MySQLGameDAO;
-import dataaccess.MySQLUserDAO;
-import dataaccess.UserDAO;
+import dataaccess.*;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 

@@ -7,9 +7,6 @@ import java.sql.*;
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
 import static java.sql.Types.NULL;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 public class MySQLAuthDAO implements AuthDAO {
 
     public MySQLAuthDAO() throws DataAccessException {
