@@ -87,12 +87,8 @@ public class Server {
             ctx.status(200);
             ctx.result(new Gson().toJson(res));
         } catch (DataAccessException e) {
-            if (e.getMessage().contains("already taken")) {
-                ctx.status(403);
-            } else {
-                ctx.status(400);
-            }
-            ctx.result(new Gson().toJson(Map.of("message", e.getMessage())));
+            ctx.status(500);
+            ctx.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
         } catch (ResponseException e) {
             ctx.status(e.toHttpStatusCode());
             ctx.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
