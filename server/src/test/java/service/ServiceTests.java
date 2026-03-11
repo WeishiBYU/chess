@@ -3,6 +3,7 @@ package service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
@@ -10,12 +11,14 @@ import org.junit.jupiter.api.Test;
 
 import dataaccess.AuthDAO;
 import dataaccess.GameDAO;
-import dataaccess.MemoryAuthDAO;
-import dataaccess.MemoryGameDAO;
-import dataaccess.MemoryUserDAO;
+import dataaccess.MySQLAuthDAO;
+import dataaccess.MySQLGameDAO;
+import dataaccess.MySQLUserDAO;
+import dataaccess.DataAccessException;
 import dataaccess.UserDAO;
 import passoff.model.TestAuthResult;
 import server.ResponseException;
+
 import service.ClearService;
 import service.GameService;
 import service.UserService;
@@ -43,16 +46,17 @@ public class ServiceTests {
     private GameDAO gameDAO;
 
     @BeforeEach
-    public void setup() {
-        userDAO = new MemoryUserDAO();
-        authDAO = new MemoryAuthDAO();
-        gameDAO = new MemoryGameDAO();
+    public void setup() throws Exception {
+        userDAO = new MySQLUserDAO();
+        authDAO = new MySQLAuthDAO();
+        gameDAO = new MySQLGameDAO();
 
 
         userService = new UserService(userDAO, authDAO);
         clearService = new ClearService(userDAO, authDAO, gameDAO);
         gameService = new GameService(authDAO, gameDAO);
 
+        clearService.clear();
     }
 
     private RegisterResult createUser()  throws Exception{
