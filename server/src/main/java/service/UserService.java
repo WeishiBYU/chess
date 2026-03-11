@@ -2,6 +2,8 @@ package service;
 
 import java.util.UUID;
 
+import org.mindrot.jbcrypt.BCrypt;
+
 import dataaccess.AuthDAO;
 import dataaccess.DataAccessException;
 import dataaccess.UserDAO;
@@ -36,11 +38,14 @@ public class UserService {
            throw new ResponseException(400, "bad request"); 
         }
 
+        String hashedPassword = BCrypt.hashpw(registerRequest.password(), BCrypt.gensalt());
+
         UserData userData = new UserData(
             registerRequest.username(),
-            registerRequest.password(), 
+            hashedPassword, 
             registerRequest.email()
         );
+
         
         userDAO.createUser(userData);
 
@@ -63,7 +68,7 @@ public class UserService {
            throw new ResponseException(400, "bad request"); 
         }
 
-        if (user == null || !user.password().equals(loginRequest.password())) {
+        if (user == null || !BCrypt.checkpw(loginRequest.password(), user.password())) {
             throw new ResponseException(401, "Error: unauthorized");
         }
         

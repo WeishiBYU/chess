@@ -20,12 +20,12 @@ public class MySQLGameDAO implements GameDAO {
     }
 
     @Override
-    public void createGame(GameData gameData) throws DataAccessException {
+    public int createGame(GameData gameData) throws DataAccessException {
 
         String game = new Gson().toJson(gameData.game());
 
         var statement = "INSERT INTO game (whiteUsername, blackUsername, gameName, game) VALUES (?, ?, ?, ?)";
-        executeUpdate(statement, gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), game);
+        return executeUpdate(statement, gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), game);
     }
 
     @Override
@@ -114,7 +114,7 @@ public class MySQLGameDAO implements GameDAO {
     }
     private final String[] createStatements = {
             """
-            CREATE TABLE IF NOT EXISTS  game (
+            CREATE TABLE IF NOT EXISTS game (
               `id` int NOT NULL AUTO_INCREMENT,
               `whiteUsername` varchar(256) DEFAULT NULL,
               `blackUsername` varchar(256) DEFAULT NULL,

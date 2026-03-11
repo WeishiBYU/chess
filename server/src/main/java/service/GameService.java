@@ -11,12 +11,10 @@ import service.results.JoinResult;
 import service.results.ListResult;
 import chess.ChessGame;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 
 import model.GameData;
-import model.GameSum;
 import server.ResponseException;
 import model.AuthData;
 
@@ -25,7 +23,6 @@ import model.AuthData;
 public class GameService {
     private final AuthDAO authDAO;
     private final GameDAO gameDAO;
-    private int id = 0;
     
     public GameService(AuthDAO a, GameDAO g) {
         this.authDAO = a;
@@ -43,7 +40,6 @@ public class GameService {
     }
 
     public CreateResult createGame(CreateRequest req) throws DataAccessException, ResponseException {
-        id++;
 
         if (req.gameName() == null) {
             throw new ResponseException(400, "Error: bad request");
@@ -51,11 +47,9 @@ public class GameService {
 
         ChessGame chess = new ChessGame();
 
-        GameData game = new GameData(id, null, null, req.gameName(), chess);
-
-        gameDAO.createGame(game);
+        GameData game = new GameData(0, null, null, req.gameName(), chess);
         
-        CreateResult res = new CreateResult(id);
+        CreateResult res = new CreateResult(gameDAO.createGame(game));
 
         return res;
     }

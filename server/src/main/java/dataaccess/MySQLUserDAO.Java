@@ -21,6 +21,7 @@ public class MySQLUserDAO implements UserDAO {
     @Override
     public void createUser(UserData userData) throws DataAccessException {
         var statement = "INSERT INTO user (username, password, email) VALUES (?, ?, ?)";
+        
         executeUpdate(statement, userData.username(), userData.password(), userData.email());
     }
 
@@ -79,7 +80,7 @@ public class MySQLUserDAO implements UserDAO {
     }
     private final String[] createStatements = {
             """
-            CREATE TABLE IF NOT EXISTS  user (
+            CREATE TABLE IF NOT EXISTS user (
               `username` varchar(256) NOT NULL,
               `password` varchar(256) NOT NULL,
               `email` varchar(256) NOT NULL,
