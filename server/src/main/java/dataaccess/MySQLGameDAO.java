@@ -13,10 +13,10 @@ import static java.sql.Types.NULL;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public class MySQLGameDAO implements GameDAO {
+public class MySQLGameDAO extends BaseMySQLDAO implements GameDAO {
 
     public MySQLGameDAO() throws DataAccessException {
-        configureDatabase();
+        configureDatabase(createStatements);
     }
 
     @Override
@@ -90,28 +90,7 @@ public class MySQLGameDAO implements GameDAO {
         return new GameData(id, whiteUsername, blackUsername, gameName, game);
     }
 
-    private int executeUpdate(String statement, Object... params) throws DataAccessException {
-        try (Connection conn = DatabaseManager.getConnection()) {
-            try (PreparedStatement ps = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
-                for (int i = 0; i < params.length; i++) {
-                    Object param = params[i];
-                    if (param instanceof String p) ps.setString(i + 1, p);
-                    else if (param instanceof Integer p) ps.setInt(i + 1, p);
-                    else if (param == null) ps.setNull(i + 1, NULL);
-                }
-                ps.executeUpdate();
 
-                ResultSet rs = ps.getGeneratedKeys();
-                if (rs.next()) {
-                    return rs.getInt(1);
-                }
-
-                return 0;
-            }
-        } catch (SQLException e) {
-            throw new DataAccessException(String.format("unable to update database: %s, %s", statement, e.getMessage()), e);
-        }
-    }
     private final String[] createStatements = {
             """
             CREATE TABLE IF NOT EXISTS game (
@@ -127,16 +106,4 @@ public class MySQLGameDAO implements GameDAO {
     };
 
 
-    private void configureDatabase() throws DataAccessException {
-        DatabaseManager.createDatabase();
-        try (Connection conn = DatabaseManager.getConnection()) {
-            for (String statement : createStatements) {
-                try (var preparedStatement = conn.prepareStatement(statement)) {
-                    preparedStatement.executeUpdate();
-                }
-            }
-        } catch (SQLException ex) {
-            throw new DataAccessException(String.format("Unable to configure database: %s", ex.getMessage()), ex);
-        }
-    }
 }
