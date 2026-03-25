@@ -13,6 +13,8 @@ import exception.ResponseException;
 import model.*;
 import model.res.*;
 import server.ServerFacade;
+import ui.EscapeSequences.*;
+
 
 public class ChessClient {
     private String visitorName = null;
@@ -46,13 +48,13 @@ public class ChessClient {
     }
 
 
-    public void notify(Notification notification) {
-        System.out.println(RED + notification.message());
-        printPrompt();
-    }
+    // public void notify(Notification notification) {
+    //     System.out.println(WHITE_KING + notification.message());
+    //     printPrompt();
+    // }
 
     private void printPrompt() {
-        System.out.print("\n" + RESET + ">>> " + GREEN);
+        System.out.print("\n"  + ">>> ");
     }
 
 
