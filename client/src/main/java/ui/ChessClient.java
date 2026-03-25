@@ -64,11 +64,11 @@ public class ChessClient {
             return switch (cmd) {
                 case "register" -> register(params);
                 case "login" -> login(params);
-                case "logout" -> logout(params);
+                case "logout" -> logout();
                 case "list" -> listChess();
                 case "create" -> createGame(params);
                 case "join" -> joinGame(params);
-                case "observe" -> observeGame(params);
+                // case "observe" -> observeGame(params);
                 case "help" -> help();
                 case "quit" -> "quit";
                 default -> help();
@@ -88,7 +88,7 @@ public class ChessClient {
             authToken = auth.authToken();
             return String.format("You signed in as %s.", visitorName);
         }
-        throw new ResponseException(ResponseException.Code.ClientError, "Expected: <username> <password>");
+        throw new ResponseException(ResponseException.Code.ClientError, "Expected: login <username> <password>");
     }
 
     public String register(String... params) throws ResponseException {
@@ -116,62 +116,53 @@ public class ChessClient {
         return result.toString();
     }
 
-    public String adoptPet(String... params) throws ResponseException {
+    public String logout() throws ResponseException {
+        assertSignedIn();
+        server.logout(authToken);
+        state = State.SIGNEDOUT;
+        return String.format("Logged out");
+    }
+
+    public String createGame(String... params) throws ResponseException {
         assertSignedIn();
         if (params.length == 1) {
-            try {
-                int id = Integer.parseInt(params[0]);
-                Pet pet = getPet(id);
-                if (pet != null) {
-                    server.deletePet(id);
-                    return String.format("%s says %s", pet.name(), pet.sound());
-                }
-            } catch (NumberFormatException ignored) {
-            }
+            String gameName = params[0];
+    
+            CreateResult res = server.createGame(authToken, gameName);
+
+            return String.format("game created, id: %d", res.gameID());
         }
-        throw new ResponseException(ResponseException.Code.ClientError, "Expected: <pet id>");
+        throw new ResponseException(ResponseException.Code.ClientError, "Expected: <gameName>");
     }
 
-    public String adoptAllPets() throws ResponseException {
+    public String joinGame(String... params) throws ResponseException {
         assertSignedIn();
-        var buffer = new StringBuilder();
-        for (Pet pet : server.listPets()) {
-            buffer.append(String.format("%s says %s%n", pet.name(), pet.sound()));
+        if (params.length == 2) {
+            int id = Integer.parseInt(params[0]);
+            String color = params[1];
+    
+            server.joinGame(authToken, color, id);
+
+            return String.format("Need to add view of game");
         }
-
-        server.deleteAllPets();
-        return buffer.toString();
-    }
-
-    public String signOut() throws ResponseException {
-        assertSignedIn();
-        ws.leavePetShop(visitorName);
-        state = State.SIGNEDOUT;
-        return String.format("%s left the shop", visitorName);
-    }
-
-    private Pet getPet(int id) throws ResponseException {
-        for (Pet pet : server.listPets()) {
-            if (pet.id() == id) {
-                return pet;
-            }
-        }
-        return null;
+        throw new ResponseException(ResponseException.Code.ClientError, "Expected: <gameId> [WHITE|BLACK]");
     }
 
     public String help() {
         if (state == State.SIGNEDOUT) {
             return """
-                    - signIn <yourname>
+                    - help
+                    - register <username> <password> <email>
+                    - login <username> <password>
                     - quit
                     """;
         }
         return """
+                - help
                 - list
-                - adopt <pet id>
-                - rescue <name> <CAT|DOG|FROG|FISH>
-                - adoptAll
-                - signOut
+                - create <gameName>
+                - join <gameId> <WHITE|BLACK>
+                - observe <gameId>
                 - quit
                 """;
     }
