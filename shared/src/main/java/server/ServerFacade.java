@@ -3,6 +3,13 @@ package server;
 import com.google.gson.Gson;
 import exception.ResponseException;
 import model.*;
+import model.requests.CreateRequest;
+import model.requests.JoinRequest;
+import model.requests.ListRequest;
+import model.requests.LoginRequest;
+import model.requests.LogoutRequest;
+import model.requests.RegisterRequest;
+import model.res.*;
 
 import java.net.*;
 import java.net.http.*;
@@ -18,36 +25,57 @@ public class ServerFacade {
         serverUrl = url;
     }
 
-    public Chess addPet(Pet pet) throws ResponseException {
-        var request = buildRequest("POST", "/pet", pet);
+    public AuthData register(String username, String password, String email) throws ResponseException {
+        var user = new RegisterRequest(username, password, email);
+        var request = buildRequest("POST", "/user", user, null);
         var response = sendRequest(request);
-        return handleResponse(response, Pet.class);
+
+        return handleResponse(response, AuthData.class);
     }
 
-    public void deletePet(int id) throws ResponseException {
-        var path = String.format("/pet/%s", id);
-        var request = buildRequest("DELETE", path, null);
+    public AuthData login(String username, String password) throws ResponseException {
+        var user = new LoginRequest(username, password);
+        var request = buildRequest("POST", "/session", user, null);
         var response = sendRequest(request);
-        handleResponse(response, null);
+        
+        return handleResponse(response, AuthData.class);
     }
 
-    public void deleteAllPets() throws ResponseException {
-        var request = buildRequest("DELETE", "/pet", null);
+    public void logout(String authToken) throws ResponseException {
+        var auth = new LogoutRequest(authToken);
+        var request = buildRequest("DELETE", "/pet", auth, authToken);
+
         sendRequest(request);
     }
 
-    public PetList listPets() throws ResponseException {
-        var request = buildRequest("GET", "/pet", null);
+    public ListResult listGames(String authToken) throws ResponseException {
+        var request = buildRequest("GET", "/game", null, authToken);
         var response = sendRequest(request);
-        return handleResponse(response, PetList.class);
+        return handleResponse(response, ListResult.class);
     }
 
-    private HttpRequest buildRequest(String method, String path, Object body) {
+    public CreateResult createGame(String authToken, String gameName) throws ResponseException {
+        var body = new CreateRequest(gameName);
+        var request = buildRequest("POST", "/game", body, authToken);
+        var response = sendRequest(request);
+        return handleResponse(response, CreateResult.class);
+    }
+
+    public void joinGame(String authToken, String playerColor, int gameID) throws ResponseException {
+        var body = new JoinRequest(playerColor, gameID);
+        var request = buildRequest("PUT", "/game", body, authToken);
+        sendRequest(request);
+        return;
+    }
+
+    private HttpRequest buildRequest(String method, String path, Object body, String header) {
         var request = HttpRequest.newBuilder()
                 .uri(URI.create(serverUrl + path))
                 .method(method, makeRequestBody(body));
         if (body != null) {
             request.setHeader("Content-Type", "application/json");
+        } else if (header != null) {
+            request.setHeader("authorization", header);
         }
         return request.build();
     }

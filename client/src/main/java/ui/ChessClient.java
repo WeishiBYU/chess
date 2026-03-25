@@ -1,28 +1,31 @@
 package ui;
 
 import java.util.Arrays;
+import java.util.Collection;
+
 import java.util.Scanner;
 
-import com.google.gson.Gson;
-import model.*;
-import exception.ResponseException;
-import server.ServerFacade;
+import javax.management.Notification;
 
-import static EscapeSequences.*;
+import com.google.gson.Gson;
+
+import exception.ResponseException;
+import model.*;
+import model.res.*;
+import server.ServerFacade;
 
 public class ChessClient {
     private String visitorName = null;
+    private String authToken = null;
     private final ServerFacade server;
-    private final WebSocketFacade ws;
     private State state = State.SIGNEDOUT;
 
     public ChessClient(String serverUrl) throws ResponseException {
         server = new ServerFacade(serverUrl);
-        ws = new WebSocketFacade(serverUrl, this);
     }
 
     public void run() {
-        System.out.println(LOGO + " Welcome to the pet store. Sign in to start.");
+        System.out.println(" Welcome to Chess. Type help to get started");
         System.out.print(help());
 
         Scanner scanner = new Scanner(System.in);
@@ -33,7 +36,7 @@ public class ChessClient {
 
             try {
                 result = eval(line);
-                System.out.print(BLUE + result);
+                System.out.print(result);
             } catch (Throwable e) {
                 var msg = e.toString();
                 System.out.print(msg);
@@ -59,12 +62,14 @@ public class ChessClient {
             String cmd = (tokens.length > 0) ? tokens[0] : "help";
             String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
             return switch (cmd) {
-                case "signin" -> signIn(params);
-                case "rescue" -> rescueChess(params);
+                case "register" -> register(params);
+                case "login" -> login(params);
+                case "logout" -> logout(params);
                 case "list" -> listChess();
-                case "signout" -> signOut();
-                case "adopt" -> adoptChess(params);
-                case "adoptall" -> adoptAllChesss();
+                case "create" -> createGame(params);
+                case "join" -> joinGame(params);
+                case "observe" -> observeGame(params);
+                case "help" -> help();
                 case "quit" -> "quit";
                 default -> help();
             };
@@ -73,35 +78,40 @@ public class ChessClient {
         }
     }
 
-    public String signIn(String... params) throws ResponseException {
-        if (params.length >= 1) {
+    public String login(String... params) throws ResponseException {
+        if (params.length >= 2) {
+            String username = params[0];
+            String password = params[1];
             state = State.SIGNEDIN;
-            visitorName = String.join("-", params);
-            ws.enterChess(visitorName);
+            AuthData auth = server.login(username, password);
+            visitorName = auth.username();
+            authToken = auth.authToken();
             return String.format("You signed in as %s.", visitorName);
         }
-        throw new ResponseException(ResponseException.Code.ClientError, "Expected: <yourname>");
+        throw new ResponseException(ResponseException.Code.ClientError, "Expected: <username> <password>");
     }
 
-    public String rescueChess(String... params) throws ResponseException {
-        assertSignedIn();
-        if (params.length >= 2) {
-            String name = params[0];
-            ChessType type = ChessType.valueOf(params[1].toUpperCase());
-            var pet = new Chess(0, name, type);
-            pet = server.addChess(pet);
-            return String.format("You rescued %s. Assigned ID: %d", pet.name(), pet.id());
+    public String register(String... params) throws ResponseException {
+        if (params.length >= 3) {
+            String username = params[0];
+            String password = params[1];
+            String email = params[2];
+            state = State.SIGNEDIN;
+            AuthData auth = server.register(username, password, email);
+            visitorName = auth.username();
+            authToken = auth.authToken();
+            return String.format("Your registered as %s.", visitorName);
         }
-        throw new ResponseException(ResponseException.Code.ClientError, "Expected: <name> <CAT|DOG|FROG>");
+        throw new ResponseException(ResponseException.Code.ClientError, "Expected: <username> <password> <email>");
     }
 
     public String listChess() throws ResponseException {
         assertSignedIn();
-        PetList pets = server.listPets();
+        ListResult games = server.listGames(authToken);
         var result = new StringBuilder();
         var gson = new Gson();
-        for (Pet pet : pets) {
-            result.append(gson.toJson(pet)).append('\n');
+        for (GameData game : games.games()) {
+            result.append(gson.toJson(game)).append('\n');
         }
         return result.toString();
     }
