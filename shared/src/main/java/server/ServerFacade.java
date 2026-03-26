@@ -1,6 +1,8 @@
 package server;
 
 import com.google.gson.Gson;
+
+import chess.ChessGame;
 import exception.ResponseException;
 import model.*;
 import model.requests.CreateRequest;
@@ -59,7 +61,7 @@ public class ServerFacade {
             GameSum sum = new GameSum(game.gameID(), game.whiteUsername(), game.blackUsername(), game.gameName());
             result.append(gson.toJson(sum)).append('\n');
         }
-        
+
         return result.toString();
     }
 
@@ -70,11 +72,31 @@ public class ServerFacade {
         return handleResponse(response, CreateResult.class);
     }
 
-    public void joinGame(String authToken, String playerColor, int gameID) throws ResponseException {
+    public ChessGame joinGame(String authToken, String playerColor, int gameID) throws ResponseException {
         var body = new JoinRequest(playerColor, gameID);
         var request = buildRequest("PUT", "/game", body, authToken);
         sendRequest(request);
-        return;
+        
+        return getGame(authToken, gameID);
+    }
+
+    public ChessGame redrawGame(String authToken, int gameID) throws ResponseException {        
+        return getGame(authToken, gameID);
+    }
+
+    public ChessGame getGame(String authToken, int gameID) throws ResponseException {
+        var request = buildRequest("GET", "/game", null, authToken);
+        var response = sendRequest(request);
+        
+        ListResult games = handleResponse(response, ListResult.class);
+
+        for (GameData game : games.games()) {
+            if (gameID == game.gameID()) {
+                return game.game(); 
+            }
+        }
+        
+        return null;
     }
 
     

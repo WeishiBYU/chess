@@ -9,6 +9,7 @@ import javax.management.Notification;
 
 import com.google.gson.Gson;
 
+import chess.ChessGame;
 import exception.ResponseException;
 import model.*;
 import model.res.*;
@@ -22,6 +23,10 @@ public class ChessClient {
     private String authToken = null;
     private final ServerFacade server;
     private State state = State.SIGNEDOUT;
+    private boolean inGame = false;
+    private int gameID;
+    private String colorPlayer;
+
 
     public ChessClient(String serverUrl) throws ResponseException {
         server = new ServerFacade(serverUrl);
@@ -71,6 +76,7 @@ public class ChessClient {
                 case "list" -> listChess();
                 case "create" -> createGame(params);
                 case "join" -> joinGame(params);
+                case "redraw" -> redraw();
                 case "observe" -> observeGame(params);
                 case "help" -> help();
                 case "quit" -> "quit";
@@ -140,15 +146,32 @@ public class ChessClient {
             int id = Integer.parseInt(params[0]);
             String color = params[1];
     
-            server.joinGame(authToken, color, id);
+            ChessGame game = server.joinGame(authToken, color, id);
+
+            inGame = true;
+            colorPlayer = color;
+            gameID = id;
 
             BoardPrinter board = new BoardPrinter();
 
-            board.drawBoard(null, true);
+            board.drawBoard(game, color);
 
-            return String.format("game created, id:");
+            return String.format("");
         }
         throw new ResponseException(ResponseException.Code.ClientError, "Expected: <gameId> [WHITE|BLACK]");
+    }
+
+    public String redraw() throws ResponseException {
+        assertSignedIn();
+        assertInGame();
+    
+            ChessGame game = server.redrawGame(authToken, gameID);
+
+            BoardPrinter board = new BoardPrinter();
+
+            board.drawBoard(game, colorPlayer);
+
+            return String.format("");
     }
 
     public String observeGame(String... params) throws ResponseException {
@@ -156,11 +179,15 @@ public class ChessClient {
         if (params.length == 1) {
             int id = Integer.parseInt(params[0]);
     
-            server.observeGame(authToken, id);
+            server.joinGame(authToken, null, id);
 
-            return String.format("Need to add view of game");
+            BoardPrinter board = new BoardPrinter();
+
+            board.drawBoard(null, "white");
+
+            return String.format("");
         }
-        throw new ResponseException(ResponseException.Code.ClientError, "Expected: <gameId>");
+        throw new ResponseException(ResponseException.Code.ClientError, "Expected: <gameId> [WHITE|BLACK]");
     }
 
     public String help() {
@@ -185,6 +212,11 @@ public class ChessClient {
     private void assertSignedIn() throws ResponseException {
         if (state == State.SIGNEDOUT) {
             throw new ResponseException(ResponseException.Code.ClientError, "You must sign in");
+        }
+
+    private void assertInGame() throws ResponseException {
+        if (!inGame) {
+            throw new ResponseException(ResponseException.Code.ClientError, "You must be in a game");
         }
     }
 }
