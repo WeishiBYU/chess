@@ -213,6 +213,7 @@ public class ChessClient {
         if (state == State.SIGNEDOUT) {
             throw new ResponseException(ResponseException.Code.ClientError, "You must sign in");
         }
+    }
 
     private void assertInGame() throws ResponseException {
         if (!inGame) {

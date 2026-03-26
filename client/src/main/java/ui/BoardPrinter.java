@@ -49,7 +49,7 @@ public class BoardPrinter {
                     System.out.print(SET_BG_COLOR_LIGHT_GREY);
                 }
                 
-                ChessPiece piece = gameBoard.getPiece(new ChessPosition(row + 1, col + 1));
+                ChessPiece piece = board.getPiece(new ChessPosition(row + 1, col + 1));
                 
                 var symbol = "   ";
 
@@ -96,14 +96,6 @@ public class BoardPrinter {
     }
 
     
-
-    private boolean nullBoard(ChessBoard board) {
-        if (board == null) {
-            return true;
-        }
-
-        return false;
-    }
 
     private boolean isWhite(String color) {
         if (color.equals("white")) {
