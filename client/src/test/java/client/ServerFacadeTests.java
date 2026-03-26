@@ -11,12 +11,15 @@ public class ServerFacadeTests {
     private static Server server;
 
     @BeforeAll
-    public static void init() throws ResponseException {
+    public static void init() {
         server = new Server();
         var port = server.run(0);
         System.out.println("Started test HTTP server on " + port);
         facade = new ServerFacade("http://localhost:" + port);
+    }
 
+    @BeforeEach
+    static void clear() throws ResponseException {
         facade.clearDB();
     }
 
@@ -152,11 +155,8 @@ public class ServerFacadeTests {
         var authData = facade.register("Player1", "password123", "p1@email.com");
         facade.createGame(authData.authToken(), "game1");
 
-        var game =     
-
-
         Assertions.assertDoesNotThrow( () -> {
-            facade.logout(authData.authToken());
+            facade.observeGame(authData.authToken(), 1);
         });   
     }
 

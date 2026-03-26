@@ -179,11 +179,15 @@ public class ChessClient {
         if (params.length == 1) {
             int id = Integer.parseInt(params[0]);
     
-            server.joinGame(authToken, null, id);
+            inGame = true;
+            colorPlayer = null;
+            gameID = id;
+
+            ChessGame game = server.observeGame(authToken, gameID);
 
             BoardPrinter board = new BoardPrinter();
 
-            board.drawBoard(null, "white");
+            board.drawBoard(game, "white");
 
             return String.format("");
         }

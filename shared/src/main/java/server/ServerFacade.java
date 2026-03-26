@@ -101,11 +101,10 @@ public class ServerFacade {
     }
 
     
-    public void observeGame(String authToken, int gameID) throws ResponseException {
-        var body = new JoinRequest(null, gameID);
-        var request = buildRequest("PUT", "/game", body, authToken);
-        sendRequest(request);
-        return;
+    public ChessGame observeGame(String authToken, int gameID) throws ResponseException {
+        var response = getGame(authToken, gameID);
+
+        return response;
     }
 
     public void clearDB() throws ResponseException {
@@ -125,7 +124,7 @@ public class ServerFacade {
         if (header != null) {
             request.setHeader("authorization", header);
         }
-        
+
         return request.build();
     }
 
