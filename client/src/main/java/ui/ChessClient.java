@@ -2,7 +2,9 @@ package ui;
 
 import java.util.Arrays;
 import java.util.Collection;
-
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 import javax.management.Notification;
@@ -26,6 +28,7 @@ public class ChessClient {
     private boolean inGame = false;
     private int gameID;
     private String colorPlayer;
+    Map<Integer, GameData> games = new HashMap<Integer,GameData>();
 
 
     public ChessClient(String serverUrl) throws ResponseException {
@@ -82,13 +85,19 @@ public class ChessClient {
     }
 
     public String login(String... params) throws ResponseException {
-        if (params.length >= 2) {
+        if (params.length == 2) {
             String username = params[0];
             String password = params[1];
-            state = State.SIGNEDIN;
+
+            if (state == State.SIGNEDIN) {
+                throw new ResponseException(ResponseException.Code.ClientError, "Can't Double Login");
+            }
+
             AuthData auth = server.login(username, password);
             visitorName = auth.username();
             authToken = auth.authToken();
+            state = State.SIGNEDIN;
+
             return String.format("You signed in as %s.", visitorName);
         }
         throw new ResponseException(ResponseException.Code.ClientError, "Expected: login <username> <password>");
@@ -99,8 +108,11 @@ public class ChessClient {
             String username = params[0];
             String password = params[1];
             String email = params[2];
-            state = State.SIGNEDIN;
+
             AuthData auth = server.register(username, password, email);
+
+            state = State.SIGNEDIN;
+
             visitorName = auth.username();
             authToken = auth.authToken();
             return String.format("Your registered as %s.", visitorName);
@@ -110,7 +122,22 @@ public class ChessClient {
 
     public String listChess() throws ResponseException {
         assertSignedIn();
-        var result = server.listGames(authToken);
+        games = server.listGames(authToken);
+
+        String result = "no games"; 
+
+        for (int i = 1; i <= games.size(); i++) {
+            result = "";
+
+            GameData game = games.get(i);
+
+            String white = (game.whiteUsername() == null) ? "" : game.whiteUsername();
+
+            String black = (game.blackUsername() == null) ? "" : game.blackUsername();
+
+
+            System.out.print(String.format("%d. %s %nWhite: %s %nBlack: %s%n", i, game.gameName(), white, black));
+        }
 
         return result;
     }
@@ -129,7 +156,7 @@ public class ChessClient {
     
             CreateResult res = server.createGame(authToken, gameName);
 
-            return String.format("game created, id: %d", res.gameID());
+            return String.format("game created");
         }
         throw new ResponseException(ResponseException.Code.ClientError, "Expected: <gameName>");
     }
@@ -137,18 +164,40 @@ public class ChessClient {
     public String joinGame(String... params) throws ResponseException {
         assertSignedIn();
         if (params.length == 2) {
+            try {
             int id = Integer.parseInt(params[0]);
             String color = params[1];
-    
-            ChessGame game = server.joinGame(authToken, color, id);
+
+
+            if (!color.equals("white") && !color.equals("black")) {
+                throw new ResponseException(ResponseException.Code.ClientError, "Expected colors: [WHITE|BLACK]");
+            }
+
+            if (id > games.size() || id < 1) {
+                throw new ResponseException(ResponseException.Code.ClientError, "Can't find game with that number");
+            }
+            
+            GameData gameData = games.get(id);
+
+            gameID = gameData.gameID();
+
+
+            ChessGame game = server.joinGame(authToken, color, gameID);
 
             inGame = true;
+
+
             colorPlayer = color;
-            gameID = id;
 
             BoardPrinter board = new BoardPrinter();
 
             board.drawBoard(game, color);
+            }
+
+            catch(NumberFormatException e) {
+                throw new ResponseException(ResponseException.Code.ClientError, "Expected: <gameId> as number");
+            }
+
 
             return String.format("");
         }
@@ -171,8 +220,14 @@ public class ChessClient {
     public String observeGame(String... params) throws ResponseException {
         assertSignedIn();
         if (params.length == 1) {
+            try {
+                
             int id = Integer.parseInt(params[0]);
-    
+
+            if (id > games.size() || id < 1) {
+                throw new ResponseException(ResponseException.Code.ClientError, "Can't find game with that number");
+            }
+
             inGame = true;
             colorPlayer = null;
             gameID = id;
@@ -184,6 +239,12 @@ public class ChessClient {
             board.drawBoard(game, "white");
 
             return String.format("");
+
+            }
+
+            catch(NumberFormatException e) {
+                throw new ResponseException(ResponseException.Code.ClientError, "Expected: <gameId> as number");
+            }
         }
         throw new ResponseException(ResponseException.Code.ClientError, "Expected: <gameId> [WHITE|BLACK]");
     }
@@ -201,6 +262,7 @@ public class ChessClient {
                 - help
                 - list
                 - create <gameName>
+                - logout
                 - join <gameId> <WHITE|BLACK>
                 - observe <gameId>
                 - quit

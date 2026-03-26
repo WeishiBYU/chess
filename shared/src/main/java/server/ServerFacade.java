@@ -7,9 +7,7 @@ import exception.ResponseException;
 import model.*;
 import model.requests.CreateRequest;
 import model.requests.JoinRequest;
-import model.requests.ListRequest;
 import model.requests.LoginRequest;
-import model.requests.LogoutRequest;
 import model.requests.RegisterRequest;
 import model.res.*;
 
@@ -18,6 +16,9 @@ import java.net.http.*;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ServerFacade {
     private final HttpClient client = HttpClient.newHttpClient();
@@ -51,19 +52,23 @@ public class ServerFacade {
         handleResponse(response, null);
     }
 
-    public String listGames(String authToken) throws ResponseException {
+    public Map<Integer, GameData> listGames(String authToken) throws ResponseException {
         var request = buildRequest("GET", "/game", null, authToken);
         var response = sendRequest(request);
         ListResult games = handleResponse(response, ListResult.class);
-        var result = new StringBuilder();
-        var gson = new Gson();
+
+        int count = 1;
+
+        Map<Integer, GameData> list =  new HashMap<>();;
 
         for (GameData game : games.games()) {
-            GameSum sum = new GameSum(game.gameID(), game.whiteUsername(), game.blackUsername(), game.gameName());
-            result.append(gson.toJson(sum)).append('\n');
+
+            list.put(count, game);
+
+            count++;
         }
 
-        return result.toString();
+        return list;
     }
 
     public CreateResult createGame(String authToken, String gameName) throws ResponseException {
@@ -74,10 +79,13 @@ public class ServerFacade {
     }
 
     public ChessGame joinGame(String authToken, String playerColor, int gameID) throws ResponseException {
+        playerColor = playerColor.toUpperCase();
+        
         var body = new JoinRequest(playerColor, gameID);
         var request = buildRequest("PUT", "/game", body, authToken);
-        sendRequest(request);
-        
+        var response = sendRequest(request);
+        handleResponse(response, null);
+
         return getGame(authToken, gameID);
     }
 

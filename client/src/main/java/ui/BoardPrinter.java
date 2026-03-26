@@ -41,7 +41,6 @@ public class BoardPrinter {
             for (int c = 0; c < 8; c++) {
                 int col = isWhite(color) ? c : (7 - c);
 
-                // Set Background Color (Alternating)
                 if ((row + col) % 2 == 0) {
                     System.out.print(SET_BG_COLOR_DARK_GREY);
 
