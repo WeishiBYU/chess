@@ -10,6 +10,7 @@ public class ServerFacadeTests {
     private static ServerFacade facade;
     private static Server server;
 
+
     @BeforeAll
     public static void init() {
         server = new Server();
@@ -19,7 +20,7 @@ public class ServerFacadeTests {
     }
 
     @BeforeEach
-    static void clear() throws ResponseException {
+    void clear() throws ResponseException {
         facade.clearDB();
     }
 
