@@ -34,8 +34,7 @@ public class ChessClient {
         var result = "";
         while (!result.equals("quit")) {
             printPrompt();
-            String line = scanner.nextLine();
-
+            String line = scanner.nextLine();            
             try {
                 result = eval(line);
                 System.out.print(result);
@@ -54,7 +53,8 @@ public class ChessClient {
     // }
 
     private void printPrompt() {
-        System.out.print("\n"  + ">>> ");
+        String prefix = (state == State.SIGNEDIN) ? "[LOGGED_IN]" : "[LOGGED_OUT]";
+        System.out.print("\n" + prefix + ">>> ");
     }
 
 
@@ -148,6 +148,18 @@ public class ChessClient {
             return String.format("Need to add view of game");
         }
         throw new ResponseException(ResponseException.Code.ClientError, "Expected: <gameId> [WHITE|BLACK]");
+    }
+
+    public String observeGame(String... params) throws ResponseException {
+        assertSignedIn();
+        if (params.length == 1) {
+            int id = Integer.parseInt(params[0]);
+    
+            server.observeGame(authToken, id);
+
+            return String.format("Need to add view of game");
+        }
+        throw new ResponseException(ResponseException.Code.ClientError, "Expected: <gameId>");
     }
 
     public String help() {
