@@ -52,12 +52,6 @@ public class ChessClient {
         System.out.println();
     }
 
-
-    // public void notify(Notification notification) {
-    //     System.out.println(WHITE_KING + notification.message());
-    //     printPrompt();
-    // }
-
     private void printPrompt() {
         String prefix = (state == State.SIGNEDIN) ? "[LOGGED_IN]" : "[LOGGED_OUT]";
         System.out.print("\n" + prefix + ">>> ");

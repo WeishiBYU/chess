@@ -93,7 +93,7 @@ public class ServerFacadeTests {
     } 
 
     @Test
-    public void CreateSuccess() throws Exception {
+    public void createSuccess() throws Exception {
         var authData = facade.register("Player1", "password123", "p1@email.com");
        
         var game = facade.createGame(authData.authToken(), "game1");
@@ -102,7 +102,7 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void CreateNotLoggedIn() throws Exception {
+    public void createNotLoggedIn() throws Exception {
         Assertions.assertThrows(ResponseException.class, () -> {
             facade.createGame(null, "game1");
         });
@@ -139,7 +139,7 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void JoinGameNoLogin() throws Exception {
+    public void joinGameNoLogin() throws Exception {
         var authData = facade.register("Player1", "password123", "p1@email.com");
        
         facade.createGame(authData.authToken(), "game1");
@@ -162,7 +162,7 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void ObserveGameNoLogin() throws Exception {
+    public void observeGameNoLogin() throws Exception {
         var authData = facade.register("Player1", "password123", "p1@email.com");
        
         facade.createGame(authData.authToken(), "game1");

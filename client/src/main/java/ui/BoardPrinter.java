@@ -56,16 +56,6 @@ public class BoardPrinter {
                 if (piece != null) {
                     boolean white = piece.getTeamColor() == ChessGame.TeamColor.WHITE;
 
-
-                    // symbol = switch (piece.getPieceType()) {
-                    //     case KING   -> white ? WHITE_KING   : BLACK_KING;
-                    //     case QUEEN  -> white ? WHITE_QUEEN  : BLACK_QUEEN;
-                    //     case BISHOP -> white ? WHITE_BISHOP : BLACK_BISHOP;
-                    //     case KNIGHT -> white ? WHITE_KNIGHT : BLACK_KNIGHT;
-                    //     case ROOK   -> white ? WHITE_ROOK   : BLACK_ROOK;
-                    //     case PAWN   -> white ? WHITE_PAWN   : BLACK_PAWN;
-                    // };
-
                     symbol = switch (piece.getPieceType()) {
                         case KING   -> white ? " K " : " k ";
                         case QUEEN  -> white ? " Q " : " q ";

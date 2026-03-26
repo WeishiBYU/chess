@@ -28,10 +28,6 @@ public class ResponseException extends Exception {
         this.code = code;
     }
 
-    public Code code() {
-        return code;
-    }
-
     public int toHttpStatusCode() {
         return code.toHttpStatusCode();
     }
@@ -41,7 +37,18 @@ public class ResponseException extends Exception {
     }
 
     public static ResponseException fromJson(String json) {
-        return new Gson().fromJson(json, ResponseException.class);
+        try {
+            ErrorBody body = new Gson().fromJson(json, ErrorBody.class);
+            String msg = (body != null && body.message != null) ? body.message : json;
+            return new ResponseException(Code.ClientError, msg);
+        } catch (Exception e) {
+            return new ResponseException(Code.ServerError, json);
+        }
+    }
+
+    private static class ErrorBody {
+        String message;
+        String error;
     }
 
     public static Code fromHttpStatusCode(int statusCode) {
