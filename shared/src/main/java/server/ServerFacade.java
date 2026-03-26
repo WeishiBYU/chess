@@ -48,10 +48,19 @@ public class ServerFacade {
         sendRequest(request);
     }
 
-    public ListResult listGames(String authToken) throws ResponseException {
+    public String listGames(String authToken) throws ResponseException {
         var request = buildRequest("GET", "/game", null, authToken);
         var response = sendRequest(request);
-        return handleResponse(response, ListResult.class);
+        ListResult games = handleResponse(response, ListResult.class);
+        var result = new StringBuilder();
+        var gson = new Gson();
+
+        for (GameData game : games.games()) {
+            GameSum sum = new GameSum(game.gameID(), game.whiteUsername(), game.blackUsername(), game.gameName());
+            result.append(gson.toJson(sum)).append('\n');
+        }
+        
+        return result.toString();
     }
 
     public CreateResult createGame(String authToken, String gameName) throws ResponseException {

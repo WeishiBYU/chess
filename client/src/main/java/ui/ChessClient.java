@@ -13,8 +13,9 @@ import exception.ResponseException;
 import model.*;
 import model.res.*;
 import server.ServerFacade;
-import ui.EscapeSequences.*;
 
+import static ui.EscapeSequences.*;
+import ui.BoardPrinter;   
 
 public class ChessClient {
     private String visitorName = null;
@@ -70,7 +71,7 @@ public class ChessClient {
                 case "list" -> listChess();
                 case "create" -> createGame(params);
                 case "join" -> joinGame(params);
-                // case "observe" -> observeGame(params);
+                case "observe" -> observeGame(params);
                 case "help" -> help();
                 case "quit" -> "quit";
                 default -> help();
@@ -109,13 +110,9 @@ public class ChessClient {
 
     public String listChess() throws ResponseException {
         assertSignedIn();
-        ListResult games = server.listGames(authToken);
-        var result = new StringBuilder();
-        var gson = new Gson();
-        for (GameData game : games.games()) {
-            result.append(gson.toJson(game)).append('\n');
-        }
-        return result.toString();
+        var result = server.listGames(authToken);
+
+        return result;
     }
 
     public String logout() throws ResponseException {
@@ -145,7 +142,11 @@ public class ChessClient {
     
             server.joinGame(authToken, color, id);
 
-            return String.format("Need to add view of game");
+            BoardPrinter board = new BoardPrinter();
+
+            board.drawBoard(null, true);
+
+            return String.format("game created, id:");
         }
         throw new ResponseException(ResponseException.Code.ClientError, "Expected: <gameId> [WHITE|BLACK]");
     }
