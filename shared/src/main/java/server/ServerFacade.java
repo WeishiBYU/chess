@@ -44,10 +44,11 @@ public class ServerFacade {
     }
 
     public void logout(String authToken) throws ResponseException {
-        var auth = new LogoutRequest(authToken);
-        var request = buildRequest("DELETE", "/pet", auth, authToken);
+        var request = buildRequest("DELETE", "/session", null, authToken);
 
-        sendRequest(request);
+        var response = sendRequest(request);
+        
+        handleResponse(response, null);
     }
 
     public String listGames(String authToken) throws ResponseException {
@@ -107,15 +108,24 @@ public class ServerFacade {
         return;
     }
 
+    public void clearDB() throws ResponseException {
+        var request = buildRequest("DELETE", "/db", null, null);
+        
+        sendRequest(request);
+    }
+
     private HttpRequest buildRequest(String method, String path, Object body, String header) {
         var request = HttpRequest.newBuilder()
                 .uri(URI.create(serverUrl + path))
                 .method(method, makeRequestBody(body));
         if (body != null) {
             request.setHeader("Content-Type", "application/json");
-        } else if (header != null) {
+        } 
+        
+        if (header != null) {
             request.setHeader("authorization", header);
         }
+        
         return request.build();
     }
 

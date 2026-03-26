@@ -41,7 +41,24 @@ public class ResponseException extends Exception {
     }
 
     public static ResponseException fromJson(String json) {
-        return new Gson().fromJson(json, ResponseException.class);
+        try {
+            ResponseException ex = new Gson().fromJson(json, ResponseException.class);
+            if (ex != null && ex.code != null && ex.getMessage() != null) {
+                return ex; // parsed full object with code + message
+            }
+            // Fallback: message-only or different shape
+            ErrorBody body = new Gson().fromJson(json, ErrorBody.class);
+            String msg = (body != null && body.message != null) ? body.message : json;
+            return new ResponseException(Code.ClientError, msg);
+        } catch (Exception e) {
+            // Last resort: return raw JSON as message
+            return new ResponseException(Code.ServerError, json);
+        }
+    }
+
+    private static class ErrorBody {
+        String message;
+        String error;
     }
 
     public static Code fromHttpStatusCode(int statusCode) {
