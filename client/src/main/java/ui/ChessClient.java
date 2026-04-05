@@ -221,7 +221,7 @@ public class ChessClient {
         assertSignedIn();
         if (params.length == 1) {
             try {
-                
+
             int id = Integer.parseInt(params[0]);
 
             if (id > games.size() || id < 1) {
@@ -246,7 +246,7 @@ public class ChessClient {
                 throw new ResponseException(ResponseException.Code.ClientError, "Expected: <gameId> as number");
             }
         }
-        throw new ResponseException(ResponseException.Code.ClientError, "Expected: <gameId> [WHITE|BLACK]");
+        throw new ResponseException(ResponseException.Code.ClientError, "Expected: <gameId>");
     }
 
     public String help() {
