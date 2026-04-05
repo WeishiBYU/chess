@@ -1,7 +1,8 @@
 package server.websocket;
 
 import org.eclipse.jetty.websocket.api.Session;
-import server.webSocketMessages.*;
+import websocket.commands.UserGameCommand;
+import websocket.messages.ServerMessage;
 
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,7 +18,7 @@ public class ConnectionManager {
         connections.remove(session);
     }
 
-    public void broadcast(Session excludeSession, Notification notification) throws IOException {
+    public void broadcast(Session excludeSession, ServerMessage notification) throws IOException {
         String msg = notification.toString();
         for (Session c : connections.values()) {
             if (c.isOpen()) {
