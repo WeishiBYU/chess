@@ -8,6 +8,7 @@ import service.results.*;
 import dataaccess.*;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
+import server.websocket.WebSocketHandler;
 
 
 public class Server {
@@ -17,6 +18,7 @@ public class Server {
     private final UserDAO userDAO;
     private final AuthDAO authDAO;
     private final GameDAO gameDAO;
+    private final WebSocketHandler webSocketHandler;
 
     private final Javalin javalin;
 
@@ -33,6 +35,9 @@ public class Server {
         this.clearService = new ClearService(userDAO, authDAO, gameDAO);
         this.gameService = new GameService(authDAO, gameDAO);
 
+        webSocketHandler = new WebSocketHandler();
+
+
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
 
         .post("/user", this::register)
@@ -42,7 +47,12 @@ public class Server {
         .get("/game", this::listGames)
         .post("/game", this::createGame)
         .put("/game", this::joinGame)
-        .exception(ResponseException.class, this::exceptionHandler);
+        .exception(ResponseException.class, this::exceptionHandler)
+        .ws("/ws", ws -> {
+            ws.onConnect(webSocketHandler);
+            ws.onMessage(webSocketHandler);
+            ws.onClose(webSocketHandler);
+        });
 
     }
 
