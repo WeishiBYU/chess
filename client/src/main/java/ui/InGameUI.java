@@ -1,7 +1,10 @@
 package ui;
 
+import java.io.IOException;
 import java.util.Scanner;
 
+import chess.ChessMove;
+import chess.ChessPosition;
 import client.websocket.NotificationHandler;
 import client.websocket.WebSocketFacade;
 import exception.ResponseException;
@@ -80,8 +83,8 @@ public class InGameUI implements NotificationHandler {
 
         return switch (cmd) {
             // You will implement these methods to call ws.move(), ws.resign(), etc.
-            // case "move" -> move(params);
-            // case "resign" -> resign();
+            case "move" -> move(params);
+            case "resign" -> resign();
             case "leave" -> leave();
             case "redraw" -> redraw();
             case "help" -> help();
@@ -105,6 +108,49 @@ public class InGameUI implements NotificationHandler {
         return "";
     }
 
+    private String resign() throws ResponseException {
+        Scanner scan = new Scanner(System.in);
+
+
+        System.out.println("Are you sure you want to resign? [y/n]: ");
+        String answer = scan.nextLine();
+
+        if(answer.equals("y")) {
+            ws.resign(authToken, gameID);
+        }
+
+        return "";
+    }
+
+    private String move(String... params) throws ResponseException {
+        if (params.length == 2 || params.length == 3) {
+            String start = params[0];
+            String end = params[1];
+            String promotion = (params.length > 2) ? params[2] : null;
+
+            ChessPosition startPos = posFinder(start);
+            ChessPosition endPos = posFinder(end);
+
+            //add stuff for promotions
+
+            if (startPos == null || endPos == null) {
+            return "Invalid position format. Use algebraic notation (e.g., 'a2').";
+            }              
+
+            ChessMove move = new ChessMove(startPos, endPos, promotion);
+            
+            try {
+                ws.makeMove(authToken, gameID, move);
+
+            } catch (ResponseException e) {
+                throw new ResponseException(ResponseException.Code.ServerError, "Failed to send move: " + e.getMessage());
+            }
+
+            return "Move command sent to the server.";
+        }
+        throw new ResponseException(ResponseException.Code.ClientError, "Expected: move <from> <to> [promotion]  (e.g., move e2 e4)");
+    }
+
     private String help() {
         return """
             - redraw
@@ -113,5 +159,23 @@ public class InGameUI implements NotificationHandler {
             - resign
             - help
             """;
+    }
+
+    private ChessPosition posFinder(String pos) {
+        if (pos.length() != 2) {
+            return null;
+        }
+
+        char colChar = pos.charAt(0);
+        char rowChar = pos.charAt(1);
+
+        if (colChar < 'a' || colChar > 'h' || rowChar < '1' || rowChar > '8') {
+            return null;
+        }
+
+        int col = colChar - 'a' + 1;
+        int row = Character.getNumericValue(rowChar);
+
+        return new ChessPosition(row, col);
     }
 }
