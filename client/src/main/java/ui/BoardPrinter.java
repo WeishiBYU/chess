@@ -19,6 +19,7 @@ public class BoardPrinter {
 
     public void drawBoard(ChessGame game, String color) {
         ChessBoard board = game.getBoard();
+        System.out.print("\n");
 
         for (int c = 0; c < 10; c++) {
 

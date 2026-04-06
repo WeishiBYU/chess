@@ -47,6 +47,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
             switch (command.getCommandType()) {
                 case CONNECT -> connect(command, ctx.session);
+                case LEAVE -> leave(command, ctx.session); // Change this line
                 default -> sendError(ctx.session, "Error: unsupported command");
             }
         } catch (Exception ex) {
@@ -58,8 +59,39 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     @Override
-    public void handleClose(WsCloseContext ctx) {
-        connections.remove(ctx.session);
+    public void handleClose(WsCloseContext ctx) throws Exception {
+        SocketData data = connections.get(ctx.session);
+        if (data != null) {
+            String username = data.username();
+            Integer gameID = data.gameID();
+            
+            connections.remove(ctx.session);
+        System.out.println("user left");
+
+            var message = String.format("%s has left the game", username);
+            var notification = new NotificationMessage(message);
+            connections.broadcastInGame(gameID, ctx.session, notification);
+        }
+    }
+
+    private void leave(UserGameCommand command, Session session) throws IOException, DataAccessException {
+        AuthData auth = authDAO.getAuth(command.getAuthToken());
+
+        if (auth == null) {
+            sendError(session, "Error: unauthorized");
+            return;
+        }
+        
+        System.out.println("user left");
+
+        Integer gameID = command.getGameID();
+        String username = auth.username();
+
+        connections.remove(session);
+
+        var message = String.format("%s has left the game", username);
+        var notification = new NotificationMessage(message);
+        connections.broadcastInGame(gameID, session, notification);
     }
 
     private void connect(UserGameCommand command, Session session) throws IOException, DataAccessException {
@@ -71,6 +103,8 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
 
         Integer gameID = command.getGameID();
+
+        System.out.println("user joined");
 
         GameData game = gameDAO.getGame(gameID);
 

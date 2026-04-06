@@ -17,7 +17,10 @@ public class ConnectionManager {
     public void add(Session session, SocketData data) {
         connections.put(session, data);
     }
-
+    
+    public SocketData get(Session session) {
+        return connections.get(session);
+    }
     public void remove(Session session) {
         connections.remove(session);
     }

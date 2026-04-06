@@ -16,14 +16,16 @@ public class InGameUI implements NotificationHandler {
     private final String authToken;
     private final int gameID;
     private String playerColor;
+    private chess.ChessGame game;
 
     @Override
     public void notify(ServerMessage message) {
         switch (message.getServerMessageType()) {
             case LOAD_GAME -> {
                 LoadGameMessage loadGameMessage = (LoadGameMessage) message;
+                this.game = loadGameMessage.getGame();
                 BoardPrinter board = new BoardPrinter();
-                board.drawBoard(loadGameMessage.getGame(), playerColor);
+                board.drawBoard(this.game, playerColor);
                 System.out.print("\n" + "Board loaded.");
                 printPrompt();
             }
@@ -50,7 +52,7 @@ public class InGameUI implements NotificationHandler {
     public void run() throws ResponseException{
         System.out.println("You are now in the game. Type 'help' for commands.");
 
-        ws.Connect(authToken, gameID);
+        ws.connect(authToken, gameID);
 
         Scanner scanner = new Scanner(System.in);
         var result = "";
@@ -59,7 +61,7 @@ public class InGameUI implements NotificationHandler {
             String line = scanner.nextLine();
             try {
                 result = eval(line);
-                System.out.print(result);
+                // System.out.print(result);
             } catch (Exception e) {
                 System.out.print(e.getMessage());
             }
@@ -81,13 +83,15 @@ public class InGameUI implements NotificationHandler {
             // case "move" -> move(params);
             // case "resign" -> resign();
             case "leave" -> leave();
-            // case "redraw" -> redraw();
+            case "redraw" -> redraw();
             case "help" -> help();
             default -> help();
         };
     }
 
     private String leave() throws ResponseException {
+        ws.leave(authToken, gameID);
+
         System.out.println("You have left the game.");
         return "left";
     }

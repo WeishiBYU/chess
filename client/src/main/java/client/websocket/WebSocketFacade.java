@@ -49,7 +49,7 @@ public class WebSocketFacade extends Endpoint {
                     case ERROR -> gson.fromJson(message, ErrorMessage.class);
                     };
 
-                    notificationHandler.notify(typed);
+                    WebSocketFacade.this.notificationHandler.notify(typed);
                 }
             });
         } catch (DeploymentException | IOException | URISyntaxException ex) {
@@ -62,15 +62,21 @@ public class WebSocketFacade extends Endpoint {
     }
 
     public void setNotificationHandler(NotificationHandler handler) {
-
-                    System.out.println("set new handler");
         this.notificationHandler = handler;
     }
 
-    public void Connect(String authToken, Integer gameID) throws ResponseException {
+    public void connect(String authToken, Integer gameID) throws ResponseException {
         try {
             UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID);
             this.session.getBasicRemote().sendText(new Gson().toJson(command));
+        } catch (IOException ex) {
+            throw new ResponseException(ResponseException.Code.ServerError, ex.getMessage());
+        }
+    }  
+
+    public void leave(String authToken, Integer gameID) throws ResponseException {
+        try {
+            session.close();
         } catch (IOException ex) {
             throw new ResponseException(ResponseException.Code.ServerError, ex.getMessage());
         }

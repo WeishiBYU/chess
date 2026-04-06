@@ -66,7 +66,6 @@ public class ChessClient implements NotificationHandler {
         String prefix = switch (state) {
             case SIGNEDOUT -> "[LOGGED_OUT]";
             case SIGNEDIN -> "[LOGGED_IN]";
-            case INGAME -> "[" + (colorPlayer != null ? colorPlayer.toUpperCase() : "OBSERVER") + "]";
         };
         System.out.print("\n" + prefix + ">>> ");
     }
@@ -171,7 +170,7 @@ public class ChessClient implements NotificationHandler {
         if (params.length == 1) {
             String gameName = params[0];
     
-            CreateResult res = server.createGame(authToken, gameName);
+            server.createGame(authToken, gameName);
 
             return String.format("game created");
         }
@@ -197,11 +196,14 @@ public class ChessClient implements NotificationHandler {
             GameData gameData = games.get(id);
             gameID = gameData.gameID();
 
+            server.joinGame(authToken, color, gameID);
+
             System.out.println("Successfully joined game. Launching in-game view...");
             InGameUI gameUI = new InGameUI(ws, authToken, gameID, color);
             ws.setNotificationHandler(gameUI);
             gameUI.run();
-
+            
+            ws.setNotificationHandler(this);
             return "You have returned to the lobby.";
             }
 
@@ -214,7 +216,6 @@ public class ChessClient implements NotificationHandler {
 
     public String redraw() throws ResponseException {
         assertSignedIn();
-        assertInGame();
     
             ChessGame game = server.redrawGame(authToken, gameID);
 
@@ -236,15 +237,19 @@ public class ChessClient implements NotificationHandler {
                 throw new ResponseException(ResponseException.Code.ClientError, "Can't find game with that number");
             }
 
-            state = State.INGAME;
             colorPlayer = null;
-            gameID = id;
+            GameData gameData = games.get(id);
+            gameID = gameData.gameID();
+
+            server.observeGame(authToken, gameID);
 
             System.out.println("Successfully joined game. Launching in-game view...");
             InGameUI gameUI = new InGameUI(ws, authToken, gameID, colorPlayer);
             ws.setNotificationHandler(gameUI);
             gameUI.run();
 
+            state = State.SIGNEDIN;
+            ws.setNotificationHandler(this);
             return "You have returned to the lobby.";
             }
 
@@ -272,13 +277,6 @@ public class ChessClient implements NotificationHandler {
                     - quit
                     - help
                     """;
-            case INGAME -> """
-                    - redraw
-                    - leave
-                    - move <from> <to> [promotion]  (e.g., move e2 e4)
-                    - resign
-                    - help
-                    """;
         };
 
     }
@@ -286,14 +284,7 @@ public class ChessClient implements NotificationHandler {
     private void assertSignedIn() throws ResponseException {
         if (state == State.SIGNEDOUT) {
             throw new ResponseException(ResponseException.Code.ClientError, "You must sign in");
-        } else if (state == State.INGAME) {
-            throw new ResponseException(ResponseException.Code.ClientError, "You must sign in");
         }
     }
 
-    private void assertInGame() throws ResponseException {
-        if (state != State.INGAME) {
-            throw new ResponseException(ResponseException.Code.ClientError, "You must be in a game");
-        }
-    }
 }
