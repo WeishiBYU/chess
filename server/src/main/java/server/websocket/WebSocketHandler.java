@@ -15,7 +15,7 @@ import model.GameData;
 import model.SocketData;
 import org.eclipse.jetty.websocket.api.Session;
 import websocket.commands.UserGameCommand;
-import websocket.messages.ServerMessage;
+import websocket.messages.*;
 
 import java.io.IOException;
 
@@ -79,15 +79,12 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             return;
         }
 
-        // Track this websocket in the game-specific connection set
         connections.add(session, new SocketData(auth.username(), command.getAuthToken(), gameID));
 
-        // 1) Send full game to caller
         connections.send(session, new LoadGameMessage(game.game()));
 
-        // 2) Notify everyone else in same game
         String msg = auth.username() + " joined the game";
-        connections.broadcastInGame(String.valueOf(gameID), session, new NotificationMessage(msg));
+        connections.broadcastInGame(gameID, session, new NotificationMessage(msg));
     }
 
     private void sendError(Session session, String message) throws IOException {

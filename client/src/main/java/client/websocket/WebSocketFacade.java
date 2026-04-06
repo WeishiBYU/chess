@@ -1,24 +1,31 @@
 package client.websocket;
 
-import com.google.gson.Gson;
-import exception.ResponseException;
-import server.webSocketMessages.*;
-import websocket.commands.UserGameCommand;
-import websocket.messages.ServerMessage;
-
-import jakarta.websocket.*;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import com.google.gson.Gson;
 
-import javax.management.Notification;
+import exception.ResponseException;
+import jakarta.websocket.ContainerProvider;
+import jakarta.websocket.DeploymentException;
+import jakarta.websocket.Endpoint;
+import jakarta.websocket.EndpointConfig;
+import jakarta.websocket.MessageHandler;
+import jakarta.websocket.Session;
+import jakarta.websocket.WebSocketContainer;
+import websocket.commands.UserGameCommand;
+import websocket.messages.ErrorMessage;
+import websocket.messages.LoadGameMessage;
+import websocket.messages.NotificationMessage;
+import websocket.messages.ServerMessage;
 
 //need to extend Endpoint for websocket to work properly
 public class WebSocketFacade extends Endpoint {
 
     Session session;
     NotificationHandler notificationHandler;
+    private final Gson gson = new Gson();
+
 
     public WebSocketFacade(String url, NotificationHandler notificationHandler) throws ResponseException {
         try {
@@ -32,8 +39,18 @@ public class WebSocketFacade extends Endpoint {
             this.session.addMessageHandler(new MessageHandler.Whole<String>() {
                 @Override
                 public void onMessage(String message) {
-                    Notification notification = new Gson().fromJson(message, Notification.class);
-                    notificationHandler.notify(notification);
+                    ServerMessage base = gson.fromJson(message, ServerMessage.class);
+                    if (base == null || base.getServerMessageType() == null) {
+                    return;
+                    }
+
+                    ServerMessage typed = switch (base.getServerMessageType()) {
+                    case LOAD_GAME -> gson.fromJson(message, LoadGameMessage.class);
+                    case NOTIFICATION -> gson.fromJson(message, NotificationMessage.class);
+                    case ERROR -> gson.fromJson(message, ErrorMessage.class);
+                    };
+
+                    notificationHandler.notify(typed);
                 }
             });
         } catch (DeploymentException | IOException | URISyntaxException ex) {
@@ -48,17 +65,8 @@ public class WebSocketFacade extends Endpoint {
     public void Connect(String authToken, Integer gameID) throws ResponseException {
         try {
             UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID);
-            
-            this.session.getBasicRemote().sendText(new Gson().toJson(command));
-        } catch (IOException ex) {
-            throw new ResponseException(ResponseException.Code.ServerError, ex.getMessage());
-        }
-    }
 
-    public void leavePetShop(String visitorName) throws ResponseException {
-        try {
-            var action = new Action(Action.Type.EXIT, visitorName);
-            this.session.getBasicRemote().sendText(new Gson().toJson(action));
+            this.session.getBasicRemote().sendText(new Gson().toJson(command));
         } catch (IOException ex) {
             throw new ResponseException(ResponseException.Code.ServerError, ex.getMessage());
         }
