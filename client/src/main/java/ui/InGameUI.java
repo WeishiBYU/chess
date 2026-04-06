@@ -96,6 +96,15 @@ public class InGameUI implements NotificationHandler {
         return "left";
     }
 
+    private String redraw() {
+        if (game == null) {
+            return "The game board has not been loaded yet.";
+        }
+        BoardPrinter board = new BoardPrinter();
+        board.drawBoard(game, playerColor);
+        return "";
+    }
+
     private String help() {
         return """
             - redraw

@@ -226,6 +226,7 @@ public class ChessClient implements NotificationHandler {
             return String.format("");
     }
 
+
     public String observeGame(String... params) throws ResponseException {
         assertSignedIn();
         if (params.length == 1) {
