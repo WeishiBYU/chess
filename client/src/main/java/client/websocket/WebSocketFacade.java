@@ -61,12 +61,15 @@ public class WebSocketFacade extends Endpoint {
     public void onOpen(Session session, EndpointConfig endpointConfig) {
     }
 
+    public void setNotificationHandler(NotificationHandler handler) {
+
+                    System.out.println("set new handler");
+        this.notificationHandler = handler;
+    }
+
     public void Connect(String authToken, Integer gameID) throws ResponseException {
         try {
             UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID);
-
-            System.out.println("user joined");
-            
             this.session.getBasicRemote().sendText(new Gson().toJson(command));
         } catch (IOException ex) {
             throw new ResponseException(ResponseException.Code.ServerError, ex.getMessage());

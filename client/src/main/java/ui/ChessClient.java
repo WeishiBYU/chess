@@ -5,6 +5,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
+import com.google.gson.Gson;
+
+import ui.InGameUI;
+import websocket.messages.ServerMessage;
 import chess.ChessGame;
 import client.websocket.*;
 import exception.ResponseException;
@@ -12,10 +16,7 @@ import model.AuthData;
 import model.GameData;
 import model.res.CreateResult;
 import server.ServerFacade;
-import websocket.messages.ErrorMessage;
-import websocket.messages.LoadGameMessage;
-import websocket.messages.NotificationMessage;
-import websocket.messages.ServerMessage;   
+
 
 public class ChessClient implements NotificationHandler {
     private String visitorName = null;
@@ -37,26 +38,9 @@ public class ChessClient implements NotificationHandler {
 
     @Override
     public void notify(ServerMessage message) {
-        switch (message.getServerMessageType()) {
-            case LOAD_GAME -> {
-                LoadGameMessage loadGameMessage = (LoadGameMessage) message;
-                BoardPrinter board = new BoardPrinter();
-                board.drawBoard(loadGameMessage.getGame(), colorPlayer);
-                System.out.print("\n" + "Board loaded.");
-                printPrompt();
-            }
-            case NOTIFICATION -> {
-                NotificationMessage notification = (NotificationMessage) message;
-                System.out.print("\n" + notification.getMessage());
-                printPrompt();
-            }
-            case ERROR -> {
-                ErrorMessage error = (ErrorMessage) message;
-                System.out.print("\n" + "Error: " + error.getErrorMessage());
-                printPrompt();
-            }
-        }
-    }
+        System.out.println("\n[SERVER_MESSAGE] " + new Gson().toJson(message));
+        printPrompt();    
+    }   
 
     public void run() {
         System.out.println(" Welcome to Chess. Type help to get started");
@@ -119,6 +103,7 @@ public class ChessClient implements NotificationHandler {
             if (state == State.SIGNEDIN) {
                 throw new ResponseException(ResponseException.Code.ClientError, "Can't Double Login");
             }
+            
 
             AuthData auth = server.login(username, password);
             visitorName = auth.username();
@@ -126,6 +111,7 @@ public class ChessClient implements NotificationHandler {
             state = State.SIGNEDIN;
 
             ws = new WebSocketFacade(serverUrl, this);
+
 
             return String.format("You signed in as %s.", visitorName);
         }
@@ -141,6 +127,8 @@ public class ChessClient implements NotificationHandler {
             AuthData auth = server.register(username, password, email);
 
             state = State.SIGNEDIN;
+
+            ws = new WebSocketFacade(serverUrl, this);
 
             visitorName = auth.username();
             authToken = auth.authToken();
@@ -207,28 +195,19 @@ public class ChessClient implements NotificationHandler {
             }
             
             GameData gameData = games.get(id);
-
             gameID = gameData.gameID();
 
+            System.out.println("Successfully joined game. Launching in-game view...");
+            InGameUI gameUI = new InGameUI(ws, authToken, gameID, color);
+            ws.setNotificationHandler(gameUI);
+            gameUI.run();
 
-            ChessGame game = server.joinGame(authToken, color, gameID);
-
-            state = State.INGAME;
-            colorPlayer = color;
-
-            ws.Connect(authToken, gameID);
-
-            BoardPrinter board = new BoardPrinter();
-
-            board.drawBoard(game, color);
+            return "You have returned to the lobby.";
             }
 
             catch(NumberFormatException e) {
                 throw new ResponseException(ResponseException.Code.ClientError, "Expected: <gameId> as number");
             }
-
-
-            return String.format("");
         }
         throw new ResponseException(ResponseException.Code.ClientError, "Expected: <gameId> [WHITE|BLACK]");
     }
@@ -261,16 +240,12 @@ public class ChessClient implements NotificationHandler {
             colorPlayer = null;
             gameID = id;
 
-            ws.Connect(authToken, gameID);
+            System.out.println("Successfully joined game. Launching in-game view...");
+            InGameUI gameUI = new InGameUI(ws, authToken, gameID, colorPlayer);
+            ws.setNotificationHandler(gameUI);
+            gameUI.run();
 
-            ChessGame game = server.observeGame(authToken, gameID);
-
-            BoardPrinter board = new BoardPrinter();
-
-            board.drawBoard(game, "white");
-
-            return String.format("");
-
+            return "You have returned to the lobby.";
             }
 
             catch(NumberFormatException e) {
@@ -281,32 +256,30 @@ public class ChessClient implements NotificationHandler {
     }
 
     public String help() {
-        if (state == State.SIGNEDOUT) {
-            return """
-                    - help
+        return switch (state) {
+            case SIGNEDOUT -> """
                     - register <username> <password> <email>
                     - login <username> <password>
                     - quit
+                    - help
                     """;
-        } else if (state == State.SIGNEDIN) {
-            return """
-                - help
-                - list
-                - create <gameName>
-                - logout
-                - join <gameId> <WHITE|BLACK>
-                - observe <gameId>
-                - quit
-                """;
-        }
-        return """
-            - help
-            - redraw
-            - leave
-            - move <starting position (ex. e2)> <ending position (e4)>
-            - resign
-            - legalMoves <starting position (ex. e2)>
-            """;
+            case SIGNEDIN -> """
+                    - create <gameName>
+                    - list
+                    - join <gameId> [WHITE|BLACK]
+                    - observe <gameId>
+                    - logout
+                    - quit
+                    - help
+                    """;
+            case INGAME -> """
+                    - redraw
+                    - leave
+                    - move <from> <to> [promotion]  (e.g., move e2 e4)
+                    - resign
+                    - help
+                    """;
+        };
 
     }
 
