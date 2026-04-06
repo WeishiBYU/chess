@@ -1,38 +1,61 @@
 package ui;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
-import javax.management.Notification;
-
-import com.google.gson.Gson;
-
 import chess.ChessGame;
+import client.websocket.*;
 import exception.ResponseException;
-import model.*;
-import model.res.*;
+import model.AuthData;
+import model.GameData;
+import model.res.CreateResult;
 import server.ServerFacade;
+import websocket.messages.ErrorMessage;
+import websocket.messages.LoadGameMessage;
+import websocket.messages.NotificationMessage;
+import websocket.messages.ServerMessage;   
 
-import static ui.EscapeSequences.*;
-import ui.BoardPrinter;   
-
-public class ChessClient {
+public class ChessClient implements NotificationHandler {
     private String visitorName = null;
     private String authToken = null;
     private final ServerFacade server;
     private State state = State.SIGNEDOUT;
-    private boolean inGame = false;
     private int gameID;
     private String colorPlayer;
+    private WebSocketFacade ws;
+    private String serverUrl;
+
     Map<Integer, GameData> games = new HashMap<Integer,GameData>();
 
 
     public ChessClient(String serverUrl) throws ResponseException {
+        this.serverUrl = serverUrl;
         server = new ServerFacade(serverUrl);
+    }
+
+    @Override
+    public void notify(ServerMessage message) {
+        switch (message.getServerMessageType()) {
+            case LOAD_GAME -> {
+                LoadGameMessage loadGameMessage = (LoadGameMessage) message;
+                BoardPrinter board = new BoardPrinter();
+                board.drawBoard(loadGameMessage.getGame(), colorPlayer);
+                System.out.print("\n" + "Board loaded.");
+                printPrompt();
+            }
+            case NOTIFICATION -> {
+                NotificationMessage notification = (NotificationMessage) message;
+                System.out.print("\n" + notification.getMessage());
+                printPrompt();
+            }
+            case ERROR -> {
+                ErrorMessage error = (ErrorMessage) message;
+                System.out.print("\n" + "Error: " + error.getErrorMessage());
+                printPrompt();
+            }
+        }
     }
 
     public void run() {
@@ -56,7 +79,11 @@ public class ChessClient {
     }
 
     private void printPrompt() {
-        String prefix = (state == State.SIGNEDIN) ? "[LOGGED_IN]" : "[LOGGED_OUT]";
+        String prefix = switch (state) {
+            case SIGNEDOUT -> "[LOGGED_OUT]";
+            case SIGNEDIN -> "[LOGGED_IN]";
+            case INGAME -> "[" + (colorPlayer != null ? colorPlayer.toUpperCase() : "OBSERVER") + "]";
+        };
         System.out.print("\n" + prefix + ">>> ");
     }
 
@@ -97,6 +124,8 @@ public class ChessClient {
             visitorName = auth.username();
             authToken = auth.authToken();
             state = State.SIGNEDIN;
+
+            ws = new WebSocketFacade(serverUrl, this);
 
             return String.format("You signed in as %s.", visitorName);
         }
@@ -184,10 +213,10 @@ public class ChessClient {
 
             ChessGame game = server.joinGame(authToken, color, gameID);
 
-            inGame = true;
-
-
+            state = State.INGAME;
             colorPlayer = color;
+
+            ws.Connect(authToken, gameID);
 
             BoardPrinter board = new BoardPrinter();
 
@@ -228,9 +257,11 @@ public class ChessClient {
                 throw new ResponseException(ResponseException.Code.ClientError, "Can't find game with that number");
             }
 
-            inGame = true;
+            state = State.INGAME;
             colorPlayer = null;
             gameID = id;
+
+            ws.Connect(authToken, gameID);
 
             ChessGame game = server.observeGame(authToken, gameID);
 
@@ -257,8 +288,8 @@ public class ChessClient {
                     - login <username> <password>
                     - quit
                     """;
-        }
-        return """
+        } else if (state == State.SIGNEDIN) {
+            return """
                 - help
                 - list
                 - create <gameName>
@@ -267,16 +298,28 @@ public class ChessClient {
                 - observe <gameId>
                 - quit
                 """;
+        }
+        return """
+            - help
+            - redraw
+            - leave
+            - move <starting position (ex. e2)> <ending position (e4)>
+            - resign
+            - legalMoves <starting position (ex. e2)>
+            """;
+
     }
 
     private void assertSignedIn() throws ResponseException {
         if (state == State.SIGNEDOUT) {
             throw new ResponseException(ResponseException.Code.ClientError, "You must sign in");
+        } else if (state == State.INGAME) {
+            throw new ResponseException(ResponseException.Code.ClientError, "You must sign in");
         }
     }
 
     private void assertInGame() throws ResponseException {
-        if (!inGame) {
+        if (state != State.INGAME) {
             throw new ResponseException(ResponseException.Code.ClientError, "You must be in a game");
         }
     }
