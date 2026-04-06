@@ -1,74 +1,96 @@
 package server.websocket;
 
 import com.google.gson.Gson;
-
 import dataaccess.AuthDAO;
+import dataaccess.DataAccessException;
 import dataaccess.GameDAO;
-import dataaccess.MySQLAuthDAO;
-import dataaccess.MySQLGameDAO;
-import dataaccess.MySQLUserDAO;
-import dataaccess.UserDAO;
-import exception.ResponseException;
 import io.javalin.websocket.WsCloseContext;
 import io.javalin.websocket.WsCloseHandler;
 import io.javalin.websocket.WsConnectContext;
 import io.javalin.websocket.WsConnectHandler;
 import io.javalin.websocket.WsMessageContext;
 import io.javalin.websocket.WsMessageHandler;
+import model.AuthData;
+import model.GameData;
 import model.SocketData;
-
 import org.eclipse.jetty.websocket.api.Session;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ServerMessage;
 
 import java.io.IOException;
 
-import javax.management.Notification;
-
 public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
-    private final UserDAO userDAO;
     private final AuthDAO authDAO;
     private final GameDAO gameDAO;
+    private final ConnectionManager connections;
+    private final Gson gson = new Gson();
 
-    private void webSocketHandler(UserDAO userDAO, AuthDAO authDAO, GameDAO gameDAO) throws Exception{
-        this.userDAO = new MySQLUserDAO();
-        this.authDAO = new MySQLAuthDAO();
-        this.gameDAO = new MySQLGameDAO();
+    public WebSocketHandler(AuthDAO authDAO, GameDAO gameDAO) {
+        this.authDAO = authDAO;
+        this.gameDAO = gameDAO;
+        this.connections = new ConnectionManager();
     }
-
-
-    private final ConnectionManager connections = new ConnectionManager();
 
     @Override
     public void handleConnect(WsConnectContext ctx) {
-        System.out.println("Websocket connected");
         ctx.enableAutomaticPings();
     }
 
     @Override
     public void handleMessage(WsMessageContext ctx) {
         try {
-            UserGameCommand action = new Gson().fromJson(ctx.message(), UserGameCommand.class);
-
-            
-            SocketData data = new SocketData(action);
-            switch (action.getCommandType()) {
-                case CONNECT -> connect(action.getAuthToken(), ctx.session);
+            UserGameCommand command = gson.fromJson(ctx.message(), UserGameCommand.class);
+            if (command == null || command.getCommandType() == null) {
+                sendError(ctx.session, "Error: bad command");
+                return;
             }
-        } catch (IOException ex) {
-            ex.printStackTrace();
+
+            switch (command.getCommandType()) {
+                case CONNECT -> connect(command, ctx.session);
+                default -> sendError(ctx.session, "Error: unsupported command");
+            }
+        } catch (Exception ex) {
+            try {
+                sendError(ctx.session, "Error: " + ex.getMessage());
+            } catch (IOException ignored) {
+            }
         }
     }
 
     @Override
     public void handleClose(WsCloseContext ctx) {
-        System.out.println("Websocket closed");
+        connections.remove(ctx.session);
     }
 
-    private void connect(SocketData data, Session session) throws IOException {
-        connections.add(session);
-        var message = String.format("%s is in the shop", visitorName);
-        var broadcast = new Notification(ServerMessage.serverMessageType.NOTIFICATION, message);
-        connections.broadcast(session, notification);
+    private void connect(UserGameCommand command, Session session) throws IOException, DataAccessException {
+        AuthData auth = authDAO.getAuth(command.getAuthToken());
+
+        if (auth == null) {
+            sendError(session, "Error: unauthorized");
+            return;
+        }
+
+        Integer gameID = command.getGameID();
+
+        GameData game = gameDAO.getGame(gameID);
+
+        if (game == null) {
+            sendError(session, "Error: bad gameID");
+            return;
+        }
+
+        // Track this websocket in the game-specific connection set
+        connections.add(session, new SocketData(auth.username(), command.getAuthToken(), gameID));
+
+        // 1) Send full game to caller
+        connections.send(session, new LoadGameMessage(game.game()));
+
+        // 2) Notify everyone else in same game
+        String msg = auth.username() + " joined the game";
+        connections.broadcastInGame(String.valueOf(gameID), session, new NotificationMessage(msg));
+    }
+
+    private void sendError(Session session, String message) throws IOException {
+        connections.send(session, new ErrorMessage(message));
     }
 }

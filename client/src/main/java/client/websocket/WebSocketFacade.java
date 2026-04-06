@@ -6,12 +6,13 @@ import server.webSocketMessages.*;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ServerMessage;
 
-
 import jakarta.websocket.*;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+
+import javax.management.Notification;
 
 //need to extend Endpoint for websocket to work properly
 public class WebSocketFacade extends Endpoint {
@@ -44,10 +45,11 @@ public class WebSocketFacade extends Endpoint {
     public void onOpen(Session session, EndpointConfig endpointConfig) {
     }
 
-    public void enterPetShop(String visitorName) throws ResponseException {
+    public void Connect(String authToken, Integer gameID) throws ResponseException {
         try {
-            var action = new Action(Action.Type.ENTER, visitorName);
-            this.session.getBasicRemote().sendText(new Gson().toJson(action));
+            UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID);
+            
+            this.session.getBasicRemote().sendText(new Gson().toJson(command));
         } catch (IOException ex) {
             throw new ResponseException(ResponseException.Code.ServerError, ex.getMessage());
         }
