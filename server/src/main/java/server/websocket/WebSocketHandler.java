@@ -175,17 +175,23 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
         try {
             gameData.game().makeMove(command.getMove());
+            
+            TeamColor newColor = (turn.equals(TeamColor.WHITE)) ? TeamColor.BLACK : TeamColor.WHITE;
+
+            gameData.game().setTeamTurn(newColor);
         } catch (InvalidMoveException e) {
             sendError(session, "Error: " + e.getMessage());
             return;
         }
 
         gameDAO.updateGame(gameData);
-        var loadGameMessage = new LoadGameMessage(gameData.game());
-        connections.broadcastInGame(gameID, null, loadGameMessage);
-
         var notification = new NotificationMessage(auth.username() + " made a move.");
         connections.broadcastInGame(gameID, session, notification);
+
+        var loadGameMessage = new LoadGameMessage(gameData.game());
+        connections.broadcastInGame(gameID, null, loadGameMessage);
+        
+
  
     }
 
