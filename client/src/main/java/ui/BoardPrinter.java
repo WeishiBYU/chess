@@ -90,6 +90,8 @@ public class BoardPrinter {
         ChessBoard board = game.getBoard();
         
         Set<ChessPosition> endPositions = new HashSet<>();
+        ChessPosition startPosition = moves.iterator().next().getStartPosition();
+
         for (ChessMove move : moves) {
             endPositions.add(move.getEndPosition());
         }
@@ -97,7 +99,6 @@ public class BoardPrinter {
         System.out.print("\n");
 
         for (int c = 0; c < 10; c++) {
-
             int perspective = isWhite(color) ? c : (letters.size() - 1 - c);
 
             System.out.print(SET_BG_COLOR_BLUE);
@@ -119,7 +120,9 @@ public class BoardPrinter {
                 ChessPosition currentPos = new ChessPosition(row + 1, col + 1);
 
                 if ((row + col) % 2 == 0) {
-                    if (endPositions.contains(currentPos)) {
+                    if (startPosition.equals(currentPos)) {
+                        System.out.print(SET_BG_COLOR_YELLOW);
+                    } else if (endPositions.contains(currentPos)) {
                         System.out.print(SET_BG_COLOR_DARK_GREEN);
                     } else {
                         System.out.print(SET_BG_COLOR_DARK_GREY);
