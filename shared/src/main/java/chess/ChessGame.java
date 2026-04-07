@@ -21,7 +21,9 @@ public class ChessGame {
     Collection<ChessMove> bMoves = new ArrayList<>();
     ChessPosition bKing;
 
-    Collection<ChessMove> vMoves = new ArrayList<>();
+    Collection<ChessMove> vMoves = new ArrayList<>();   
+
+    Boolean gameOver = false;
 
     public ChessGame() {
         game.resetBoard();
@@ -227,6 +229,14 @@ public class ChessGame {
         }
     }
 
+    public boolean isGameOver() {
+        return gameOver;
+    }
+
+    public void setGameOver() {
+        gameOver = true;
+    }
+
     /**
      * Determines if the given team is in check
      *
@@ -271,6 +281,7 @@ public class ChessGame {
         vMoves(teamColor);
 
         if (vMoves.size() == 0 && isInCheck(teamColor) == true) {
+            setGameOver();
             return true;
         }
         return false;
@@ -288,6 +299,7 @@ public class ChessGame {
         vMoves(teamColor);
 
         if (vMoves.size() == 0 && isInCheck(teamColor) == false) {
+            setGameOver();
             return true;
         }
         return false;    

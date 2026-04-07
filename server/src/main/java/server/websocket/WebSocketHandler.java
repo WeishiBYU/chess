@@ -27,7 +27,6 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     private final GameDAO gameDAO;
     private final ConnectionManager connections;
     private final Gson gson = new Gson();
-    Boolean gameOver = false;
     TeamColor turn;
 
     public WebSocketHandler(AuthDAO authDAO, GameDAO gameDAO) {
@@ -83,18 +82,30 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
         Integer gameID = command.getGameID();
 
-        GameData game = gameDAO.getGame(gameID);
-
         System.out.println("user left");
 
         String username = auth.username();
+        String playerColor = null;
 
-        if (game.blackUsername().equals(username)) {
-            game = new GameData(game.gameID(), game.whiteUsername(), null, game.gameName(), game.game());
-            gameDAO.updateGame(game);
-        } else if (game.whiteUsername().equals(username)) {
-            game = new GameData(game.gameID(), null, game.blackUsername(), game.gameName(), game.game());
-            gameDAO.updateGame(game);
+        GameData gameData = gameDAO.getGame(gameID);
+        if (gameData == null) {
+            sendError(session, "Error: Invalid game ID");
+            return;
+        }
+        
+        if (username.equals(gameData.whiteUsername())) {
+            playerColor = "WHITE";
+        } else if (username.equals(gameData.blackUsername())) {
+            playerColor = "BLACK";
+        }
+
+        if (playerColor != null) {
+            if (playerColor.equals("WHITE")) {
+                gameData = new GameData(gameID, null, gameData.blackUsername(), gameData.gameName(), gameData.game());
+            } else {
+                gameData = new GameData(gameID, gameData.whiteUsername(), null, gameData.gameName(), gameData.game());
+            }
+            gameDAO.updateGame(gameData);
         }
 
         connections.remove(session);
@@ -135,17 +146,34 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     private void resign(UserGameCommand command, Session session) throws IOException, DataAccessException {
         AuthData auth = authDAO.getAuth(command.getAuthToken());
 
-        if (auth == null) {
+        Integer gameID = command.getGameID();
+        GameData game = gameDAO.getGame(gameID);
+
+        String username = auth.username();
+        String playerColor = null;
+
+        if (game.game().isGameOver()) {
+            sendError(session, "Game is over");
+            return;
+        }
+
+        if (username.equals(game.whiteUsername())) {
+            playerColor = "WHITE";
+        } else if (username.equals(game.blackUsername())) {
+            playerColor = "BLACK";
+        }
+
+        if (auth == null || playerColor == null) {
             sendError(session, "Error: unauthorized");
             return;
         }
         
+        game.game().setGameOver();
+
+        gameDAO.updateGame(game);
+        
         System.out.println("user resigned");
 
-        Integer gameID = command.getGameID();
-        String username = auth.username();
-
-        gameOver = true;
 
         var message = String.format("%s has resigned", username);
         var notification = new NotificationMessage(message);
@@ -155,19 +183,19 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     private void makeMove(MakeMoveCommand command, Session session) throws IOException, DataAccessException {
         AuthData auth = authDAO.getAuth(command.getAuthToken());
         TeamColor playerColor = null;
-
-        if (gameOver) {
-            sendError(session, "Game is over");
-            return;
-        }
+        Integer gameID = command.getGameID();
+        GameData gameData = gameDAO.getGame(gameID);
+        
+            if (gameData.game().isGameOver()) {
+                sendError(session, "Game is over");
+                return;
+            }
 
         if (auth == null) {
             sendError(session, "Error: unauthorized");
             return;
         }
 
-        Integer gameID = command.getGameID();
-        GameData gameData = gameDAO.getGame(gameID);
         turn = gameData.game().getTeamTurn();
 
         if (gameData.whiteUsername() != null && gameData.whiteUsername().equals(auth.username())) {
@@ -200,9 +228,27 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
         var loadGameMessage = new LoadGameMessage(gameData.game());
         connections.broadcastInGame(gameID, null, loadGameMessage);
+
+        TeamColor opponentTeam = (playerColor == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
+
+        if (gameData.game().isInCheckmate(opponentTeam)) {
+            gameData.game().setGameOver();
+            gameDAO.updateGame(gameData);
+            var checkmateMsg = new NotificationMessage(opponentTeam + " is in checkmate. " + playerColor + " wins!");
+            connections.broadcastInGame(gameID, null, checkmateMsg);
+        } else if (gameData.game().isInStalemate(opponentTeam)) {
+            gameData.game().setGameOver();
+            gameDAO.updateGame(gameData);
+            var stalemateMsg = new NotificationMessage("The game is a stalemate.");
+            connections.broadcastInGame(gameID, null, stalemateMsg);
+        } else if (gameData.game().isInCheck(opponentTeam)) {
+            var checkMsg = new NotificationMessage(opponentTeam + " is in check.");
+            connections.broadcastInGame(gameID, null, checkMsg);
+        }
     }
 
     private void sendError(Session session, String message) throws IOException {
         connections.send(session, new ErrorMessage(message));
     }
+
 }
