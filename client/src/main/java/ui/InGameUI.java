@@ -186,7 +186,7 @@ public class InGameUI implements NotificationHandler {
 
             return "Move command sent to the server.";
         }
-        throw new ResponseException(ResponseException.Code.ClientError, "Expected: move <from> <to> [promotion]  (e.g., move e2 e4 or move e7 e8 rook)");
+        throw new ResponseException(ResponseException.Code.ClientError, "Expected: move <from> <to> [promotion]  (e.g., move e2 e4)");
     }
 
     private String help() {
