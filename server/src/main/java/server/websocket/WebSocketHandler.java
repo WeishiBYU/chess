@@ -166,8 +166,8 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             playerColor = TeamColor.BLACK;
         }
         
-        if (!(playerColor.equals(turn))) {
-            sendError(session, "Error: It's not your turn");
+        if (playerColor == null || !(playerColor.equals(turn))) {
+            sendError(session, "It's not your turn");
             return;
         }
 

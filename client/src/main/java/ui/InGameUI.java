@@ -137,14 +137,9 @@ public class InGameUI implements NotificationHandler {
             return "Invalid position format. Use algebraic notation (e.g., 'a2').";
             }              
 
-            ChessMove move = new ChessMove(startPos, endPos, promotion);
+            ChessMove move = new ChessMove(startPos, endPos, null);
             
-            try {
-                ws.makeMove(authToken, gameID, move);
-
-            } catch (ResponseException e) {
-                throw new ResponseException(ResponseException.Code.ServerError, "Failed to send move: " + e.getMessage());
-            }
+            ws.makeMove(authToken, gameID, move);
 
             return "Move command sent to the server.";
         }
