@@ -1,10 +1,11 @@
 package ui;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Scanner;
 
+import chess.ChessGame;
 import chess.ChessMove;
+import chess.ChessPiece;
 import chess.ChessPosition;
 import client.websocket.NotificationHandler;
 import client.websocket.WebSocketFacade;
@@ -155,12 +156,10 @@ public class InGameUI implements NotificationHandler {
         if (params.length == 2 || params.length == 3) {
             String start = params[0];
             String end = params[1];
-            String promotion = (params.length > 2) ? params[2] : null;
+            ChessPiece.PieceType promotion = (params.length > 2) ? promtion(params[2]) : null;
 
             ChessPosition startPos = posFinder(start);
             ChessPosition endPos = posFinder(end);
-
-            //add stuff for promotions
 
             if (startPos == null || endPos == null) {
             return "Invalid position format. Use algebraic notation (e.g., 'a2').";
@@ -172,7 +171,7 @@ public class InGameUI implements NotificationHandler {
 
             return "Move command sent to the server.";
         }
-        throw new ResponseException(ResponseException.Code.ClientError, "Expected: move <from> <to> [promotion]  (e.g., move e2 e4)");
+        throw new ResponseException(ResponseException.Code.ClientError, "Expected: move <from> <to> [promotion]  (e.g., move e2 e4 or move e7 e8 rook)");
     }
 
     private String help() {
@@ -202,5 +201,21 @@ public class InGameUI implements NotificationHandler {
         int row = Character.getNumericValue(rowChar);
 
         return new ChessPosition(row, col);
+    }
+
+    private ChessPiece.PieceType promtion(String piece) {
+        piece = piece.toUpperCase();
+
+        ChessPiece.PieceType p = switch (piece) {
+            case "KING" -> ChessPiece.PieceType.KING;
+            case "QUEEN"  -> ChessPiece.PieceType.QUEEN;
+            case "BISHOP" -> ChessPiece.PieceType.BISHOP;
+            case "KNIGHT" -> ChessPiece.PieceType.KNIGHT;
+            case "ROOK"   -> ChessPiece.PieceType.ROOK;
+            default -> null;
+        };
+                
+
+        return p;
     }
 }
