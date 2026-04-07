@@ -30,7 +30,12 @@ public class InGameUI implements NotificationHandler {
                 LoadGameMessage loadGameMessage = (LoadGameMessage) message;
                 this.game = loadGameMessage.getGame();
                 BoardPrinter board = new BoardPrinter();
-                board.drawBoard(this.game, playerColor);
+                if (playerColor == null) {
+                    board.drawBoard(game, "white");
+                } else {
+                    board.drawBoard(this.game, playerColor);
+                }
+
                 System.out.print("\n" + "Board loaded.");
                 printPrompt();
             }
@@ -106,13 +111,23 @@ public class InGameUI implements NotificationHandler {
             return "The game board has not been loaded yet.";
         }
         BoardPrinter board = new BoardPrinter();
+
+        if (playerColor == null) {
+            board.drawBoard(game, "white");
+            return "";
+        }
+
         board.drawBoard(game, playerColor);
         return "";
     }
 
     private String resign() throws ResponseException {
-        Scanner scan = new Scanner(System.in);
 
+        if (playerColor == null) {
+            return "Observers cannot resign.";
+        }
+
+        Scanner scan = new Scanner(System.in);
 
         System.out.println("Are you sure you want to resign? [y/n]: ");
         String answer = scan.nextLine();
@@ -131,8 +146,6 @@ public class InGameUI implements NotificationHandler {
 
             ChessPosition piecePos = posFinder(pos);
 
-            //add stuff for promotions
-
             if (piecePos == null) {
             return "Invalid position format. Use algebraic notation (e.g., 'a2').";
             }              
@@ -141,8 +154,10 @@ public class InGameUI implements NotificationHandler {
 
             Collection<ChessMove> moves = game.validMoves(piecePos);
 
-            if (moves != null) {
+            if (moves != null && playerColor != null) {
                 board.drawMoves(game, playerColor, moves);
+            } else if (moves != null && playerColor == null){
+                board.drawMoves(game, "white", moves);
             } else {
                 throw new ResponseException(ResponseException.Code.ClientError, "no piece found in position");
             }
@@ -165,7 +180,7 @@ public class InGameUI implements NotificationHandler {
             return "Invalid position format. Use algebraic notation (e.g., 'a2').";
             }              
 
-            ChessMove move = new ChessMove(startPos, endPos, null);
+            ChessMove move = new ChessMove(startPos, endPos, promotion);
             
             ws.makeMove(authToken, gameID, move);
 
@@ -175,6 +190,15 @@ public class InGameUI implements NotificationHandler {
     }
 
     private String help() {
+        if (playerColor == null) {
+            return """
+                - redraw
+                - leave
+                - help
+                - redraw
+                - check <piece position> e.g., check e2
+                """;
+        }
         return """
             - redraw
             - leave

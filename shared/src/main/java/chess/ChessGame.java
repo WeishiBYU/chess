@@ -223,7 +223,7 @@ public class ChessGame {
         }
         
         else {
-            throw new InvalidMoveException("nope");
+            throw new InvalidMoveException("nope move was bad");
         }
     }
 
