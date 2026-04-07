@@ -81,11 +81,21 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             sendError(session, "Error: unauthorized");
             return;
         }
-        
+        Integer gameID = command.getGameID();
+
+        GameData game = gameDAO.getGame(gameID);
+
         System.out.println("user left");
 
-        Integer gameID = command.getGameID();
         String username = auth.username();
+
+        if (game.blackUsername().equals(username)) {
+            game = new GameData(game.gameID(), game.whiteUsername(), null, game.gameName(), game.game());
+            gameDAO.updateGame(game);
+        } else if (game.whiteUsername().equals(username)) {
+            game = new GameData(game.gameID(), null, game.blackUsername(), game.gameName(), game.game());
+            gameDAO.updateGame(game);
+        }
 
         connections.remove(session);
 
@@ -139,7 +149,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
         var message = String.format("%s has resigned", username);
         var notification = new NotificationMessage(message);
-        connections.broadcastInGame(gameID, session, notification);
+        connections.broadcastInGame(gameID, null, notification);
     }
 
     private void makeMove(MakeMoveCommand command, Session session) throws IOException, DataAccessException {

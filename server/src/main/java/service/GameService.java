@@ -65,9 +65,9 @@ public class GameService {
 
         if (game == null || req.playerColor() == null) {
             throw new ResponseException(400, "bad request");
-        } else if (req.playerColor().equals("WHITE") && game.whiteUsername() != null) {
+        } else if (req.playerColor().equals("WHITE") && (game.whiteUsername() != null && game.whiteUsername() != auth.username())) {
             throw new ResponseException(403, "Color has player");
-        } else if (req.playerColor().equals("BLACK") && game.blackUsername() != null) {
+        } else if (req.playerColor().equals("BLACK") && (game.blackUsername() != null && game.blackUsername() != auth.username())) {
             throw new ResponseException(403, "Color has player");
         }
 
