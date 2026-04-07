@@ -1,13 +1,14 @@
 package ui;
-import static ui.EscapeSequences.RESET_BG_COLOR;
-import static ui.EscapeSequences.SET_BG_COLOR_BLUE;
-import static ui.EscapeSequences.SET_BG_COLOR_DARK_GREY;
-import static ui.EscapeSequences.SET_BG_COLOR_LIGHT_GREY;
+import static ui.EscapeSequences.*;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import chess.ChessBoard;
 import chess.ChessGame;
+import chess.ChessMove;
 import chess.ChessPiece;
 import chess.ChessPosition;
 
@@ -84,6 +85,89 @@ public class BoardPrinter {
         }   
         System.out.print(RESET_BG_COLOR);
     }
+
+    public void drawMoves(ChessGame game, String color, Collection<ChessMove> moves) {
+        ChessBoard board = game.getBoard();
+        
+        Set<ChessPosition> endPositions = new HashSet<>();
+        for (ChessMove move : moves) {
+            endPositions.add(move.getEndPosition());
+        }
+
+        System.out.print("\n");
+
+        for (int c = 0; c < 10; c++) {
+
+            int perspective = isWhite(color) ? c : (letters.size() - 1 - c);
+
+            System.out.print(SET_BG_COLOR_BLUE);
+
+            System.out.print(letters.get(perspective));
+        }   
+
+        System.out.println(RESET_BG_COLOR);
+
+        for (int r = 0; r < 8; r++) {
+            int row = isWhite(color) ? (7 - r) : r;
+
+            System.out.print(SET_BG_COLOR_BLUE);
+
+            System.out.print(numbers.get(row));
+
+            for (int c = 0; c < 8; c++) {
+                int col = isWhite(color) ? c : (7 - c);
+                ChessPosition currentPos = new ChessPosition(row + 1, col + 1);
+
+                if ((row + col) % 2 == 0) {
+                    if (endPositions.contains(currentPos)) {
+                        System.out.print(SET_BG_COLOR_DARK_GREEN);
+                    } else {
+                        System.out.print(SET_BG_COLOR_DARK_GREY);
+                    }
+                } else {
+                    if (endPositions.contains(currentPos)) {
+                        System.out.print(SET_BG_COLOR_GREEN);
+                    } else {
+                        System.out.print(SET_BG_COLOR_LIGHT_GREY);
+                    }
+                }
+                
+                ChessPiece piece = board.getPiece(new ChessPosition(row + 1, col + 1));
+                
+                var symbol = "   ";
+
+                if (piece != null) {
+                    boolean white = piece.getTeamColor() == ChessGame.TeamColor.WHITE;
+
+                    symbol = switch (piece.getPieceType()) {
+                        case KING   -> white ? " K " : " k ";
+                        case QUEEN  -> white ? " Q " : " q ";
+                        case BISHOP -> white ? " B " : " b ";
+                        case KNIGHT -> white ? " N " : " n ";
+                        case ROOK   -> white ? " R " : " r ";
+                        case PAWN   -> white ? " P " : " p ";
+                    };
+                }
+                
+                System.out.print(symbol);
+            }
+            System.out.print(SET_BG_COLOR_BLUE);
+
+            System.out.print(numbers.get(row));
+
+            System.out.println(RESET_BG_COLOR);
+        }
+
+        for (int c = 0; c < 10; c++) {
+            System.out.print(SET_BG_COLOR_BLUE);
+
+            int perspective = isWhite(color) ? c : (letters.size() - 1 - c);
+            
+            System.out.print(letters.get(perspective));
+        }   
+        System.out.print(RESET_BG_COLOR);
+    }
+
 
     
 

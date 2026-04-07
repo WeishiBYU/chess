@@ -190,9 +190,6 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
         var loadGameMessage = new LoadGameMessage(gameData.game());
         connections.broadcastInGame(gameID, null, loadGameMessage);
-        
-
- 
     }
 
     private void sendError(Session session, String message) throws IOException {

@@ -1,6 +1,7 @@
 package ui;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Scanner;
 
 import chess.ChessMove;
@@ -64,7 +65,7 @@ public class InGameUI implements NotificationHandler {
             String line = scanner.nextLine();
             try {
                 result = eval(line);
-                // System.out.print(result);
+                System.out.print(result);
             } catch (Exception e) {
                 System.out.print(e.getMessage());
             }
@@ -82,12 +83,12 @@ public class InGameUI implements NotificationHandler {
         var params = java.util.Arrays.copyOfRange(tokens, 1, tokens.length);
 
         return switch (cmd) {
-            // You will implement these methods to call ws.move(), ws.resign(), etc.
             case "move" -> move(params);
             case "resign" -> resign();
             case "leave" -> leave();
             case "redraw" -> redraw();
             case "help" -> help();
+            case "check" -> check(params);
             default -> help();
         };
     }
@@ -122,6 +123,34 @@ public class InGameUI implements NotificationHandler {
         return "";
     }
 
+    private String check(String... params) throws ResponseException {
+        if (params.length == 1) {
+            String pos = params[0];
+
+
+            ChessPosition piecePos = posFinder(pos);
+
+            //add stuff for promotions
+
+            if (piecePos == null) {
+            return "Invalid position format. Use algebraic notation (e.g., 'a2').";
+            }              
+
+            BoardPrinter board = new BoardPrinter();
+
+            Collection<ChessMove> moves = game.validMoves(piecePos);
+
+            if (moves != null) {
+                board.drawMoves(game, playerColor, moves);
+            } else {
+                throw new ResponseException(ResponseException.Code.ClientError, "no piece found in position");
+            }
+
+            return "";
+        }
+        throw new ResponseException(ResponseException.Code.ClientError, "Expected: move <from> <to> [promotion]  (e.g., move e2 e4)");
+    }
+
     private String move(String... params) throws ResponseException {
         if (params.length == 2 || params.length == 3) {
             String start = params[0];
@@ -153,6 +182,7 @@ public class InGameUI implements NotificationHandler {
             - move <from> <to> [promotion]  (e.g., move e2 e4)
             - resign
             - help
+            - check <piece position> e.g., check e2
             """;
     }
 
